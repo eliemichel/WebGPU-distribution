@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3.0.0...3.24 FATAL_ERROR)
+project(webgpu-backend-dawn VERSION 1.0.0)
+
 message(STATUS "Using Dawn backend for WebGPU")
 
 add_library(webgpu INTERFACE)
