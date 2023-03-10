@@ -46,6 +46,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(webgpu)
 ```
 
+This creates a `webgpu` CMake target that you can link against.
+
+**NB** In order to ensure that dynamically linked backend are copied next to the generated application, call `target_copy_webgpu_binaries(TargetName)` at the end of your CMakeLists for each target `TargetName` that links against `webgpu`.
+
 ### Option A: Flexibility
 
 **Branch:** `main` (recommended)
