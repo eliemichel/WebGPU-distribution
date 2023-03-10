@@ -7,7 +7,6 @@ if (NOT TARGET webgpu)
 
 	if (EMSCRIPTEN OR WEBGPU_BACKEND_U STREQUAL "EMSCRIPTEN")
 
-		message(STATUS "Using emscripten backend for WebGPU")
 		FetchContent_Declare(
 			webgpu-backend-emscripten
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-binaries
@@ -17,7 +16,6 @@ if (NOT TARGET webgpu)
 
 	elseif (WEBGPU_BACKEND_U STREQUAL "WGPU")
 
-		message(STATUS "Using wgpu-native backend for WebGPU")
 		FetchContent_Declare(
 			webgpu-backend-wgpu
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-binaries
@@ -27,7 +25,6 @@ if (NOT TARGET webgpu)
 
 	elseif (WEBGPU_BACKEND_U STREQUAL "DAWN")
 
-		message(STATUS "Using Dawn backend for WebGPU")
 		FetchContent_Declare(
 			webgpu-backend-dawn
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-binaries
