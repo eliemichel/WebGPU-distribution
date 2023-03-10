@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3.0.0...3.24 FATAL_ERROR)
+project(webgpu-backend-wgpu VERSION 1.0.0)
+
 message(STATUS "Using wgpu-native backend for WebGPU")
 
 if (EMSCRIPTEN)
