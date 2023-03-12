@@ -47,7 +47,7 @@ else (EMSCRIPTEN)
 
 	elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
-		set(WGPU_RUNTIME_LIB ${WGPU}/bin/linux-${ARCH}/libwgpu.so)
+		set(WGPU_RUNTIME_LIB ${WGPU}/bin/linux-${ARCH}/libwgpu_native.so)
 		set_target_properties(
 			webgpu
 			PROPERTIES
