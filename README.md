@@ -112,3 +112,13 @@ In theory we could use WebGPU backends as packaged by their developers. However 
  - Dawn build instructions require the installation of depot_tools, which is overkill: our distribution replaces it with a simple Python script, Python being needed anyways for code generation purposes.
 
  - Dawn provides a C++ interface similar in some ways to WebGPU-C++ but that cannot be used with wgpu-native because it directly communicates with the Dawn backend instead of using only the standard `webgpu.h` header.
+
+### Future work
+
+**Single-plateform precompiled library.** I initially cared about providing a standalone folder that can be dropped in any project or shared with students and works on any desktop platform without the need for an Internet connection or anything (what the `wgpu` branch does).
+
+While I intend to maintain this possibility, since the *Flexibility* option already uses a FetchContent mechanism it could be used to download only the binaries needed for the current platform.
+
+**Static linking.** wgpu-native now also auto-builds static libraries, they could be included as an alternative (not sure it works for MSVC).
+
+**Precompiled Dawn binaries.** Is it worth it? Initial compilation takes time, but then it is okey. Could use [Zig](https://github.com/hexops/mach-gpu-dawn) for this.
