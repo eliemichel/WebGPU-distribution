@@ -39,11 +39,14 @@ class Var:
     def __radd__(self, str):
         return str + self.name
 
+def log(msg):
+    print(f"-- -- {msg}")
+
 def main():
     if not os.path.isfile('DEPS'):
         return
 
-    print(f"Running fetch_dawn_dependencies.py from {os.getcwd()}")
+    log(f"Listing dependencies from {os.getcwd()}")
     DEPS = open('DEPS').read()
     
     ldict = {}
@@ -56,15 +59,16 @@ def main():
         if path not in deps:
             continue
         url, tag = parse_url(deps[path], ldict['vars'])
-        print(url)
-        print(tag)
+        log(f"Fetching dependency '{path}'")
 
         if not os.path.isdir(path):
-            print(f"Cloning '{url}' into '{path}'")
-            subprocess.run(['git', 'clone', '--recurse-submodules', url, path])
+            log(f"Cloning '{url}' into '{path}'")
+            subprocess.run(['git', 'clone', '--recurse-submodules', url, path], capture_output=True)
             with cd(path):
-                print(f"Checking out tag '{tag}'")
-                subprocess.run(['git', 'checkout', tag])
+                log(f"Checking out tag '{tag}'")
+                subprocess.run(['git', 'checkout', tag], capture_output=True)
+        else:
+            log(f"(Already cloned)")
         with cd(path):
             subprocess.run([sys.executable, __file__])
 

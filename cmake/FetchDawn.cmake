@@ -3,7 +3,7 @@ include(FetchContent)
 FetchContent_Declare(
 	dawn
 	GIT_REPOSITORY https://dawn.googlesource.com/dawn
-	GIT_TAG        chromium/5524
+	GIT_TAG        chromium/5715
 	GIT_SUBMODULES
 )
 
@@ -11,14 +11,13 @@ function(make_dawn_available)
 	FetchContent_GetProperties(dawn)
 	if (NOT dawn_POPULATED)
 		FetchContent_Populate(dawn)
+		find_package(PythonInterp 3 REQUIRED)
 
+		message(STATUS "Running fetch_dawn_dependencies:")
 		execute_process(
-			COMMAND python "${CMAKE_CURRENT_SOURCE_DIR}/tools/fetch_dawn_dependencies.py"
+			COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/fetch_dawn_dependencies.py"
 			WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/_deps/dawn-src"
-			OUTPUT_VARIABLE OUT
-			ERROR_VARIABLE OUT
 		)
-		message(STATUS "fetch_dawn_dependencies: ${OUT}")
 
 		set(DAWN_BUILD_SAMPLES OFF)
 		set(TINT_BUILD_TINT OFF) # TODO
