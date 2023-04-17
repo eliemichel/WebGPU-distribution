@@ -41,7 +41,7 @@ else (EMSCRIPTEN)
 			webgpu
 			PROPERTIES
 				IMPORTED_LOCATION "${WGPU_RUNTIME_LIB}"
-				IMPORTED_IMPLIB "${WGPU}/bin/windows-${ARCH}/wgpu_native.lib"
+				IMPORTED_IMPLIB "${WGPU_RUNTIME_LIB}.lib"
 				INTERFACE_INCLUDE_DIRECTORIES "${WGPU}/include"
 		)
 
