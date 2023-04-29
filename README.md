@@ -32,7 +32,7 @@ Usage
 Different options for using this repository are detailed bellow. The only difference is the `<branch_name>` to use when getting a distribution, either by downloading the source from:
 
 ```
-https://github.com/eliemichel/LearnWebGPU-distribution/archive/refs/heads/<branch_name>.zip
+https://github.com/eliemichel/WebGPU-distribution/archive/refs/heads/<branch_name>.zip
 ```
 
 and including it with `add_subdirectory(webgpu)`, or by using fetch content:
