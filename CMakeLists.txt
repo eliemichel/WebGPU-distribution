@@ -6,7 +6,7 @@ message(STATUS "Using emscripten backend for WebGPU")
 add_library(webgpu INTERFACE)
 
 target_include_directories(webgpu INTERFACE
-	"${CMAKE_CURRENT_SOURCE_DIR}/include-emscripten"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_EMSCRIPTEN)
