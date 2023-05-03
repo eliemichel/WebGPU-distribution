@@ -17,6 +17,7 @@ required_submodules = [
     'third_party/glfw',
     'third_party/abseil-cpp',
     'third_party/jinja2',
+    'third_party/markupsafe',
 ]
 
 class cd:
@@ -48,7 +49,7 @@ def main():
 
     log(f"Listing dependencies from {os.getcwd()}")
     DEPS = open('DEPS').read()
-    
+
     ldict = {}
     exec(DEPS, globals(), ldict)  # yeah I know this is dangerous
     deps = ldict.get('deps')
