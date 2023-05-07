@@ -69,13 +69,25 @@ function(make_dawn_available)
 		webgpu_dawn
 		webgpu_headers_gen
 	)
+
+	set(AllGlfwTargets
+		glfw
+		update_mappings
+	)
 	
 	foreach (Target ${AllDawnTargets})
-		set_property(TARGET ${Target} PROPERTY FOLDER "Dawn")
+		if (TARGET ${Target})
+			set_property(TARGET ${Target} PROPERTY FOLDER "External/Dawn")
+		endif()
 	endforeach()
-	set_property(TARGET glfw PROPERTY FOLDER "External/GLFW3")
-	set_property(TARGET update_mappings PROPERTY FOLDER "External/GLFW3")
+
+	foreach (Target ${AllGlfwTargets})
+		if (TARGET ${Target})
+			set_property(TARGET ${Target} PROPERTY FOLDER "External/GLFW3")
+		endif()
+	endforeach()
 
 	# This is likely needed for other targets as well
+	# TODO: Notify this upstream
 	target_include_directories(dawn_utils PUBLIC "${CMAKE_BINARY_DIR}/_deps/dawn-src/src")
 endfunction()
