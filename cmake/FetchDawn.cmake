@@ -5,6 +5,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://dawn.googlesource.com/dawn
 	GIT_TAG        chromium/5715
 	GIT_SUBMODULES
+	GIT_SHALLOW ON
 )
 
 function(make_dawn_available)
