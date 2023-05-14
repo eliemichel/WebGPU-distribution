@@ -191,8 +191,7 @@ def shallow_clone(git, git_url, git_tag, submodule_path):
     """
     submodule_path.mkdir()
     git('init')
-    git('remote', 'add', 'origin', git_url)
-    git('fetch', 'origin', git_tag, '--depth', '1')
+    git('fetch', git_url, git_tag, '--depth', '1')
 
 def log(msg):
     """Just makes it look good in the CMake log flow."""
