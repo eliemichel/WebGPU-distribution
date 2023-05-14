@@ -113,6 +113,16 @@ public:
 
 
 
+// Other type aliases
+using Flags = uint32_t;
+using BufferUsageFlags = WGPUFlags;
+using ColorWriteMaskFlags = WGPUFlags;
+using MapModeFlags = WGPUFlags;
+using ShaderStageFlags = WGPUFlags;
+using TextureUsageFlags = WGPUFlags;
+using InstanceBackendFlags = WGPUFlags;
+using SubmissionIndex = uint64_t;
+
 // Enumerations
 ENUM(AdapterType)
 	ENUM_ENTRY(DiscreteGPU, 0x00000000)
@@ -584,8 +594,6 @@ ENUM(BufferUsage)
 	ENUM_ENTRY(QueryResolve, 0x00000200)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
-ENUM(BufferUsageFlags)
-END
 ENUM(ColorWriteMask)
 	ENUM_ENTRY(None, 0x00000000)
 	ENUM_ENTRY(Red, 0x00000001)
@@ -595,15 +603,11 @@ ENUM(ColorWriteMask)
 	ENUM_ENTRY(All, 0x0000000F)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
-ENUM(ColorWriteMaskFlags)
-END
 ENUM(MapMode)
 	ENUM_ENTRY(None, 0x00000000)
 	ENUM_ENTRY(Read, 0x00000001)
 	ENUM_ENTRY(Write, 0x00000002)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
-END
-ENUM(MapModeFlags)
 END
 ENUM(ShaderStage)
 	ENUM_ENTRY(None, 0x00000000)
@@ -611,8 +615,6 @@ ENUM(ShaderStage)
 	ENUM_ENTRY(Fragment, 0x00000002)
 	ENUM_ENTRY(Compute, 0x00000004)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
-END
-ENUM(ShaderStageFlags)
 END
 ENUM(TextureUsage)
 	ENUM_ENTRY(None, 0x00000000)
@@ -623,9 +625,15 @@ ENUM(TextureUsage)
 	ENUM_ENTRY(RenderAttachment, 0x00000010)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
-ENUM(TextureUsageFlags)
-END
 ENUM(NativeSType)
+	ENUM_ENTRY(DeviceExtras, 0x60000001)
+	ENUM_ENTRY(AdapterExtras, 0x60000002)
+	ENUM_ENTRY(RequiredLimitsExtras, 0x60000003)
+	ENUM_ENTRY(PipelineLayoutExtras, 0x60000004)
+	ENUM_ENTRY(ShaderModuleGLSLDescriptor, 0x60000005)
+	ENUM_ENTRY(SupportedLimitsExtras, 0x60000003)
+	ENUM_ENTRY(InstanceExtras, 0x60000006)
+	ENUM_ENTRY(SwapChainDescriptorExtras, 0x60000007)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
 ENUM(NativeFeature)
@@ -655,8 +663,6 @@ ENUM(InstanceBackend)
 	ENUM_ENTRY(Secondary, WGPUInstanceBackend_GL)
 	ENUM_ENTRY(None, 0x00000000)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
-END
-ENUM(InstanceBackendFlags)
 END
 ENUM(Dx12Compiler)
 	ENUM_ENTRY(Undefined, 0x00000000)
@@ -1779,31 +1785,31 @@ void RenderPipelineDescriptor::setDefault() {
 void InstanceExtras::setDefault() {
 	dx12ShaderCompiler = Dx12Compiler::Undefined;
 	((ChainedStruct*)&chain)->setDefault();
-	chain.sType = SType::InstanceExtras;
+	chain.sType = (WGPUSType)NativeSType::InstanceExtras;
 }
 
 // Methods of AdapterExtras
 void AdapterExtras::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
-	chain.sType = SType::AdapterExtras;
+	chain.sType = (WGPUSType)NativeSType::AdapterExtras;
 }
 
 // Methods of DeviceExtras
 void DeviceExtras::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
-	chain.sType = SType::DeviceExtras;
+	chain.sType = (WGPUSType)NativeSType::DeviceExtras;
 }
 
 // Methods of RequiredLimitsExtras
 void RequiredLimitsExtras::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
-	chain.sType = SType::RequiredLimitsExtras;
+	chain.sType = (WGPUSType)NativeSType::RequiredLimitsExtras;
 }
 
 // Methods of SupportedLimitsExtras
 void SupportedLimitsExtras::setDefault() {
 	((ChainedStructOut*)&chain)->setDefault();
-	chain.sType = SType::SupportedLimitsExtras;
+	chain.sType = (WGPUSType)NativeSType::SupportedLimitsExtras;
 }
 
 // Methods of PushConstantRange
@@ -1813,7 +1819,7 @@ void PushConstantRange::setDefault() {
 // Methods of PipelineLayoutExtras
 void PipelineLayoutExtras::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
-	chain.sType = SType::PipelineLayoutExtras;
+	chain.sType = (WGPUSType)NativeSType::PipelineLayoutExtras;
 }
 
 // Methods of WrappedSubmissionIndex
@@ -1827,7 +1833,7 @@ void ShaderDefine::setDefault() {
 // Methods of ShaderModuleGLSLDescriptor
 void ShaderModuleGLSLDescriptor::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
-	chain.sType = SType::ShaderModuleGLSLDescriptor;
+	chain.sType = (WGPUSType)NativeSType::ShaderModuleGLSLDescriptor;
 }
 
 // Methods of StorageReport
@@ -1870,7 +1876,7 @@ void SurfaceCapabilities::setDefault() {
 // Methods of SwapChainDescriptorExtras
 void SwapChainDescriptorExtras::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
-	chain.sType = SType::SwapChainDescriptorExtras;
+	chain.sType = (WGPUSType)NativeSType::SwapChainDescriptorExtras;
 }
 
 // Methods of Adapter
@@ -1943,7 +1949,7 @@ std::unique_ptr<BufferMapCallback> Buffer::mapAsync(MapModeFlags mode, size_t of
 		BufferMapCallback& callback = *reinterpret_cast<BufferMapCallback*>(userdata);
 		callback(static_cast<BufferMapAsyncStatus>(status));
 	};
-	wgpuBufferMapAsync(m_raw, static_cast<WGPUMapModeFlags>(mode), offset, size, cCallback, reinterpret_cast<void*>(handle.get()));
+	wgpuBufferMapAsync(m_raw, mode, offset, size, cCallback, reinterpret_cast<void*>(handle.get()));
 	return handle;
 }
 void Buffer::setLabel(char const * label) {
@@ -2409,7 +2415,7 @@ void RenderPassEncoder::setViewport(float x, float y, float width, float height,
 	return wgpuRenderPassEncoderSetViewport(m_raw, x, y, width, height, minDepth, maxDepth);
 }
 void RenderPassEncoder::setPushConstants(ShaderStageFlags stages, uint32_t offset, uint32_t sizeBytes, void* const data) {
-	return wgpuRenderPassEncoderSetPushConstants(m_raw, static_cast<WGPUShaderStageFlags>(stages), offset, sizeBytes, data);
+	return wgpuRenderPassEncoderSetPushConstants(m_raw, stages, offset, sizeBytes, data);
 }
 void RenderPassEncoder::multiDrawIndirect(Buffer buffer, uint64_t offset, uint32_t count) {
 	return wgpuRenderPassEncoderMultiDrawIndirect(m_raw, buffer, offset, count);
