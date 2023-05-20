@@ -31,8 +31,26 @@ if (NOT dawn_POPULATED)
 		WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/_deps/dawn-src"
 	)
 
+	# A more minimalistic choice of backand than Dawn's default
+	if (APPLE)
+		set(USE_VULKAN OFF)
+		set(USE_METAL ON)
+	else()
+		set(USE_VULKAN ON)
+		set(USE_METAL OFF)
+	endif()
+	set(DAWN_ENABLE_D3D11 OFF)
+	set(DAWN_ENABLE_D3D12 OFF)
+	set(DAWN_ENABLE_METAL ${USE_METAL})
+	set(DAWN_ENABLE_NULL OFF)
+	set(DAWN_ENABLE_DESKTOP_GL OFF)
+	set(DAWN_ENABLE_OPENGLES OFF)
+	set(DAWN_ENABLE_VULKAN ${USE_VULKAN})
+	set(TINT_BUILD_SPV_READER OFF)
+
+	# Disable unneeded parts
 	set(DAWN_BUILD_SAMPLES OFF)
-	set(TINT_BUILD_TINT OFF) # TODO
+	set(TINT_BUILD_TINT OFF)
 	set(TINT_BUILD_SAMPLES OFF)
 	set(TINT_BUILD_DOCS OFF)
 	set(TINT_BUILD_TESTS OFF)
@@ -65,6 +83,12 @@ set(AllDawnTargets
 	extinst_tables
 	webgpu_dawn
 	webgpu_headers_gen
+	libtint
+	tint_diagnostic_utils
+	tint_utils_io
+	tint_val
+	tint-format
+	tint-lint
 )
 
 set(AllGlfwTargets
@@ -85,5 +109,5 @@ foreach (Target ${AllGlfwTargets})
 endforeach()
 
 # This is likely needed for other targets as well
-# TODO: Notify this upstream
+# TODO: Notify this upstream (is this still needed?)
 target_include_directories(dawn_utils PUBLIC "${CMAKE_BINARY_DIR}/_deps/dawn-src/src")
