@@ -113,12 +113,19 @@ In theory we could use WebGPU backends as packaged by their developers. However 
 
  - Dawn provides a C++ interface similar in some ways to WebGPU-C++ but that cannot be used with wgpu-native because it directly communicates with the Dawn backend instead of using only the standard `webgpu.h` header.
 
+### Shallow clone
+
+**Important.** When using this reprository as a submodule, you should advise your users to add `--shallow-submodules` to their `git clone` command so that they only download the branch you picked.
+
+I am not very happy with this, as it is likely that people forget it. I'm thinking of splitting this repository into multiple ones, namely one per option, but it is not ideal. In the meantime, a safe option is to just copy the content of this `main` branch into your repo.
+
+
 ### Future work
 
 **Single-plateform precompiled library.** I initially cared about providing a standalone folder that can be dropped in any project or shared with students and works on any desktop platform without the need for an Internet connection or anything (what the `wgpu` branch does).
 
 While I intend to maintain this possibility, since the *Flexibility* option already uses a FetchContent mechanism it could be used to download only the binaries needed for the current platform.
 
-**Static linking.** wgpu-native now also auto-builds static libraries, they could be included as an alternative (not sure it works for MSVC).
+**Static linking.** wgpu-native now also auto-builds static libraries, they are included as an alternative in the `wgpu-static` branch but this is highly untested (and I'm pretty sure it does not work for MSVC).
 
 **Precompiled Dawn binaries.** Is it worth it? Initial compilation takes time, but then it is okey. Could use [Zig](https://github.com/hexops/mach-gpu-dawn) for this.
