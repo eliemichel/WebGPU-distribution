@@ -51,7 +51,8 @@ else (EMSCRIPTEN)
 		set_target_properties(
 			webgpu
 			PROPERTIES
-				IMPORTED_LOCATION "libwgpu_native.so"
+				IMPORTED_LOCATION "${WGPU_RUNTIME_LIB}"
+				IMPORTED_NO_SONAME TRUE
 				INTERFACE_INCLUDE_DIRECTORIES "${WGPU}/include"
 		)
 
@@ -90,14 +91,9 @@ else (EMSCRIPTEN)
 				"Copying '${WGPU_RUNTIME_LIB}' to '$<TARGET_FILE_DIR:${Target}>'..."
 		)
 
-		if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-			set_target_properties(${Target} PROPERTIES INSTALL_RPATH "$ORIGIN/")
-			set_target_properties(${Target} PROPERTIES BUILD_WITH_INSTALL_RPATH ON)
-		elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+		if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 			# Bug fix, there might be a cleaner way to do this but no INSTALL_RPATH
 			# or related target properties seem to be a solution.
-			# Maybe using a similar mechanism than with linux works, but
-			# I don't have a mac at hand to test.
 			set_target_properties(${Target} PROPERTIES INSTALL_RPATH "./")
 			if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
 				set(ARCH_DIR aarch64)
