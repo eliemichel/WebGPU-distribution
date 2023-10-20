@@ -17,7 +17,7 @@ class WebGPUDistributionConan(ConanFile):
     }
     default_options = {
         'shared': True,
-        'branch': 'main',
+        'branch': 'dawn',
         'fPIC': True
     }
 
@@ -40,7 +40,7 @@ class WebGPUDistributionConan(ConanFile):
         pass
 
     def generate(self):
-        tc = CMakeToolchain(self)
+        tc = CMakeToolchain(self, generator="Ninja")
         tc.generate()
         deps = CMakeDeps(self)
         deps.generate()
@@ -55,8 +55,10 @@ class WebGPUDistributionConan(ConanFile):
         pass
 
     def package(self):
-        cmake = CMake(self)
-        cmake.install()
+        self.copy(pattern="_deps/dawn-build/gen/include/dawn/webgpu.h", dst="include/webgpu", keep_path=False)
+        self.copy(pattern="include/webgpu/webgpu.hpp", dst="include/webgpu", keep_path=False)
+        self.copy(pattern="*libwebgpu_dawn.a", dst="lib", keep_path=False)
+        self.copy(pattern="*libwebgpu_dawn.dylib", dst="lib", keep_path=False)
 
     def package_info(self):
         pass
