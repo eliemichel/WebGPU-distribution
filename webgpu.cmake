@@ -10,7 +10,7 @@ if (NOT TARGET webgpu)
 		FetchContent_Declare(
 			webgpu-backend-emscripten
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        95fb2098a85dbb6c30f0bfcb34b327e82c7394c4
+			GIT_TAG        5ece5a9
 			GIT_SHALLOW    TRUE
 		)
 		FetchContent_MakeAvailable(webgpu-backend-emscripten)
@@ -20,7 +20,7 @@ if (NOT TARGET webgpu)
 		FetchContent_Declare(
 			webgpu-backend-wgpu
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        656e72a9abe17e837cf74fb6cd9bccd04c2a2878
+			GIT_TAG        13d2589
 			GIT_SHALLOW    TRUE
 		)
 		FetchContent_MakeAvailable(webgpu-backend-wgpu)
@@ -30,7 +30,7 @@ if (NOT TARGET webgpu)
 		FetchContent_Declare(
 			webgpu-backend-dawn
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        4119fdaccf70d9f4460776c956d6217e20ae16d1
+			GIT_TAG        bb0943d
 			GIT_SHALLOW    TRUE
 		)
 		FetchContent_MakeAvailable(webgpu-backend-dawn)
