@@ -13,6 +13,8 @@
 WebGPU distribution
 ===================
 
+**Important Note** If you were using [`webgpu.cmake`](https://github.com/eliemichel/WebGPU-distribution/blob/main/webgpu.cmake) prior to November 5, 2023 **please update** it to prevent breaking changes. Each revision of this file now points to a specific version of the distribution submodules to make sure your project still builds even when the distributions gets updated.
+
 Overview
 --------
 
