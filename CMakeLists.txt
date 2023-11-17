@@ -33,7 +33,7 @@ else (EMSCRIPTEN)
 
 	if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
-		set(WGPU_RUNTIME_LIB ${WGPU}/bin/windows-${ARCH}/wgpu_native.lib)
+		set(WGPU_RUNTIME_LIB ${WGPU}/lib/windows-${ARCH}/wgpu_native.lib)
 		set_target_properties(
 			webgpu
 			PROPERTIES
@@ -44,7 +44,7 @@ else (EMSCRIPTEN)
 
 	elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
-		set(WGPU_RUNTIME_LIB ${WGPU}/bin/linux-${ARCH}/libwgpu_native.a)
+		set(WGPU_RUNTIME_LIB ${WGPU}/lib/linux-${ARCH}/libwgpu_native.a)
 		set_target_properties(
 			webgpu
 			PROPERTIES
@@ -54,7 +54,8 @@ else (EMSCRIPTEN)
 
 	elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-		set(WGPU_RUNTIME_LIB ${WGPU}/bin/macos-${ARCH}/libwgpu_native.a)
+		set(WGPU_RUNTIME_LIB ${WGPU}/lib/macos-${ARCH}/libwgpu_native.a)
+        target_link_libraries(webgpu INTERFACE "-framework Metal" "-framework QuartzCore" "-framework MetalKit")
 		set_target_properties(
 			webgpu
 			PROPERTIES
