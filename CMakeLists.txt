@@ -65,7 +65,7 @@ else (EMSCRIPTEN)
 
 	else()
 
-		message(FATAL_ERROR "Plateform not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
+		message(FATAL_ERROR "Platform not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
 
 	endif()
 
