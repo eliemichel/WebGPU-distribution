@@ -1,6 +1,6 @@
 include(FetchContent)
 
-set(WEBGPU_BACKEND "WGPU" CACHE STRING "Backend implementation of WebGPU. Possible values are WGPU and DAWN (it does not matter when using emcmake)")
+set(WEBGPU_BACKEND "WGPU" CACHE STRING "Backend implementation of WebGPU. Possible values are EMSCRIPTEN, WGPU, WGPU_STATIC and DAWN (it does not matter when using emcmake)")
 
 if (NOT TARGET webgpu)
 	string(TOUPPER ${WEBGPU_BACKEND} WEBGPU_BACKEND_U)
@@ -10,7 +10,7 @@ if (NOT TARGET webgpu)
 		FetchContent_Declare(
 			webgpu-backend-emscripten
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        5ece5a9
+			GIT_TAG        emscripten-v3.1.56
 			GIT_SHALLOW    TRUE
 		)
 		FetchContent_MakeAvailable(webgpu-backend-emscripten)
@@ -20,7 +20,17 @@ if (NOT TARGET webgpu)
 		FetchContent_Declare(
 			webgpu-backend-wgpu
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        13d2589
+			GIT_TAG        wgpu-v0.19.3.1
+			GIT_SHALLOW    TRUE
+		)
+		FetchContent_MakeAvailable(webgpu-backend-wgpu)
+
+	elseif (WEBGPU_BACKEND_U STREQUAL "WGPU_STATIC")
+
+		FetchContent_Declare(
+			webgpu-backend-wgpu
+			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
+			GIT_TAG        wgpu-static-v0.19.3.1
 			GIT_SHALLOW    TRUE
 		)
 		FetchContent_MakeAvailable(webgpu-backend-wgpu)
@@ -30,14 +40,14 @@ if (NOT TARGET webgpu)
 		FetchContent_Declare(
 			webgpu-backend-dawn
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        bb0943d
+			GIT_TAG        dawn-6376
 			GIT_SHALLOW    TRUE
 		)
 		FetchContent_MakeAvailable(webgpu-backend-dawn)
 
 	else()
 
-		message(FATAL_ERROR "Invalid value for WEBGPU_BACKEND: possible values are WGPU and DAWN, but '${WEBGPU_BACKEND_U}' was provided.")
+		message(FATAL_ERROR "Invalid value for WEBGPU_BACKEND: possible values are EMSCRIPTEN, WGPU, WGPU_STATIC and DAWN, but '${WEBGPU_BACKEND_U}' was provided.")
 
 	endif()
 endif()
