@@ -68,7 +68,7 @@ else (EMSCRIPTEN)
 
 	else()
 
-		message(FATAL_ERROR "Plateform not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
+		message(FATAL_ERROR "Platform not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
 
 	endif()
 
@@ -79,7 +79,7 @@ else (EMSCRIPTEN)
 	# The application's binary must find wgpu.dll or libwgpu.so at runtime,
 	# so we automatically copy it (it's called WGPU_RUNTIME_LIB in general)
 	# next to the binary.
-	# Also make sure that the binarie's RPATH is set to find this shared library.
+	# Also make sure that the binary's RPATH is set to find this shared library.
 	function(target_copy_webgpu_binaries Target)
 		add_custom_command(
 			TARGET ${Target} POST_BUILD
