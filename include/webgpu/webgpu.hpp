@@ -60,6 +60,7 @@ class Type { \
 public: \
 	typedef Type S; /* S == Self */ \
 	typedef WGPU ## Type W; /* W == WGPU Type */ \
+	Type() : m_raw(nullptr) {} \
 	Type(const W& w) : m_raw(w) {} \
 	operator W&() { return m_raw; } \
 	operator const W&() const { return m_raw; } \
@@ -281,15 +282,14 @@ ENUM(FeatureName)
 	ENUM_ENTRY(DepthClipControl, 0x00000001)
 	ENUM_ENTRY(Depth32FloatStencil8, 0x00000002)
 	ENUM_ENTRY(TimestampQuery, 0x00000003)
-	ENUM_ENTRY(PipelineStatisticsQuery, 0x00000004)
-	ENUM_ENTRY(TextureCompressionBC, 0x00000005)
-	ENUM_ENTRY(TextureCompressionETC2, 0x00000006)
-	ENUM_ENTRY(TextureCompressionASTC, 0x00000007)
-	ENUM_ENTRY(IndirectFirstInstance, 0x00000008)
-	ENUM_ENTRY(ShaderF16, 0x00000009)
-	ENUM_ENTRY(RG11B10UfloatRenderable, 0x0000000A)
-	ENUM_ENTRY(BGRA8UnormStorage, 0x0000000B)
-	ENUM_ENTRY(Float32Filterable, 0x0000000C)
+	ENUM_ENTRY(TextureCompressionBC, 0x00000004)
+	ENUM_ENTRY(TextureCompressionETC2, 0x00000005)
+	ENUM_ENTRY(TextureCompressionASTC, 0x00000006)
+	ENUM_ENTRY(IndirectFirstInstance, 0x00000007)
+	ENUM_ENTRY(ShaderF16, 0x00000008)
+	ENUM_ENTRY(RG11B10UfloatRenderable, 0x00000009)
+	ENUM_ENTRY(BGRA8UnormStorage, 0x0000000A)
+	ENUM_ENTRY(Float32Filterable, 0x0000000B)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
 ENUM(FilterMode)
@@ -319,14 +319,6 @@ ENUM(MipmapFilterMode)
 	ENUM_ENTRY(Linear, 0x00000001)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
-ENUM(PipelineStatisticName)
-	ENUM_ENTRY(VertexShaderInvocations, 0x00000000)
-	ENUM_ENTRY(ClipperInvocations, 0x00000001)
-	ENUM_ENTRY(ClipperPrimitivesOut, 0x00000002)
-	ENUM_ENTRY(FragmentShaderInvocations, 0x00000003)
-	ENUM_ENTRY(ComputeShaderInvocations, 0x00000004)
-	ENUM_ENTRY(Force32, 0x7FFFFFFF)
-END
 ENUM(PowerPreference)
 	ENUM_ENTRY(Undefined, 0x00000000)
 	ENUM_ENTRY(LowPower, 0x00000001)
@@ -350,8 +342,7 @@ ENUM(PrimitiveTopology)
 END
 ENUM(QueryType)
 	ENUM_ENTRY(Occlusion, 0x00000000)
-	ENUM_ENTRY(PipelineStatistics, 0x00000001)
-	ENUM_ENTRY(Timestamp, 0x00000002)
+	ENUM_ENTRY(Timestamp, 0x00000001)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
 ENUM(QueueWorkDoneStatus)
@@ -410,6 +401,8 @@ END
 ENUM(StorageTextureAccess)
 	ENUM_ENTRY(Undefined, 0x00000000)
 	ENUM_ENTRY(WriteOnly, 0x00000001)
+	ENUM_ENTRY(ReadOnly, 0x00000002)
+	ENUM_ENTRY(ReadWrite, 0x00000003)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
 ENUM(StoreOp)
@@ -465,76 +458,77 @@ ENUM(TextureFormat)
 	ENUM_ENTRY(RGBA8Sint, 0x00000016)
 	ENUM_ENTRY(BGRA8Unorm, 0x00000017)
 	ENUM_ENTRY(BGRA8UnormSrgb, 0x00000018)
-	ENUM_ENTRY(RGB10A2Unorm, 0x00000019)
-	ENUM_ENTRY(RG11B10Ufloat, 0x0000001A)
-	ENUM_ENTRY(RGB9E5Ufloat, 0x0000001B)
-	ENUM_ENTRY(RG32Float, 0x0000001C)
-	ENUM_ENTRY(RG32Uint, 0x0000001D)
-	ENUM_ENTRY(RG32Sint, 0x0000001E)
-	ENUM_ENTRY(RGBA16Uint, 0x0000001F)
-	ENUM_ENTRY(RGBA16Sint, 0x00000020)
-	ENUM_ENTRY(RGBA16Float, 0x00000021)
-	ENUM_ENTRY(RGBA32Float, 0x00000022)
-	ENUM_ENTRY(RGBA32Uint, 0x00000023)
-	ENUM_ENTRY(RGBA32Sint, 0x00000024)
-	ENUM_ENTRY(Stencil8, 0x00000025)
-	ENUM_ENTRY(Depth16Unorm, 0x00000026)
-	ENUM_ENTRY(Depth24Plus, 0x00000027)
-	ENUM_ENTRY(Depth24PlusStencil8, 0x00000028)
-	ENUM_ENTRY(Depth32Float, 0x00000029)
-	ENUM_ENTRY(Depth32FloatStencil8, 0x0000002A)
-	ENUM_ENTRY(BC1RGBAUnorm, 0x0000002B)
-	ENUM_ENTRY(BC1RGBAUnormSrgb, 0x0000002C)
-	ENUM_ENTRY(BC2RGBAUnorm, 0x0000002D)
-	ENUM_ENTRY(BC2RGBAUnormSrgb, 0x0000002E)
-	ENUM_ENTRY(BC3RGBAUnorm, 0x0000002F)
-	ENUM_ENTRY(BC3RGBAUnormSrgb, 0x00000030)
-	ENUM_ENTRY(BC4RUnorm, 0x00000031)
-	ENUM_ENTRY(BC4RSnorm, 0x00000032)
-	ENUM_ENTRY(BC5RGUnorm, 0x00000033)
-	ENUM_ENTRY(BC5RGSnorm, 0x00000034)
-	ENUM_ENTRY(BC6HRGBUfloat, 0x00000035)
-	ENUM_ENTRY(BC6HRGBFloat, 0x00000036)
-	ENUM_ENTRY(BC7RGBAUnorm, 0x00000037)
-	ENUM_ENTRY(BC7RGBAUnormSrgb, 0x00000038)
-	ENUM_ENTRY(ETC2RGB8Unorm, 0x00000039)
-	ENUM_ENTRY(ETC2RGB8UnormSrgb, 0x0000003A)
-	ENUM_ENTRY(ETC2RGB8A1Unorm, 0x0000003B)
-	ENUM_ENTRY(ETC2RGB8A1UnormSrgb, 0x0000003C)
-	ENUM_ENTRY(ETC2RGBA8Unorm, 0x0000003D)
-	ENUM_ENTRY(ETC2RGBA8UnormSrgb, 0x0000003E)
-	ENUM_ENTRY(EACR11Unorm, 0x0000003F)
-	ENUM_ENTRY(EACR11Snorm, 0x00000040)
-	ENUM_ENTRY(EACRG11Unorm, 0x00000041)
-	ENUM_ENTRY(EACRG11Snorm, 0x00000042)
-	ENUM_ENTRY(ASTC4x4Unorm, 0x00000043)
-	ENUM_ENTRY(ASTC4x4UnormSrgb, 0x00000044)
-	ENUM_ENTRY(ASTC5x4Unorm, 0x00000045)
-	ENUM_ENTRY(ASTC5x4UnormSrgb, 0x00000046)
-	ENUM_ENTRY(ASTC5x5Unorm, 0x00000047)
-	ENUM_ENTRY(ASTC5x5UnormSrgb, 0x00000048)
-	ENUM_ENTRY(ASTC6x5Unorm, 0x00000049)
-	ENUM_ENTRY(ASTC6x5UnormSrgb, 0x0000004A)
-	ENUM_ENTRY(ASTC6x6Unorm, 0x0000004B)
-	ENUM_ENTRY(ASTC6x6UnormSrgb, 0x0000004C)
-	ENUM_ENTRY(ASTC8x5Unorm, 0x0000004D)
-	ENUM_ENTRY(ASTC8x5UnormSrgb, 0x0000004E)
-	ENUM_ENTRY(ASTC8x6Unorm, 0x0000004F)
-	ENUM_ENTRY(ASTC8x6UnormSrgb, 0x00000050)
-	ENUM_ENTRY(ASTC8x8Unorm, 0x00000051)
-	ENUM_ENTRY(ASTC8x8UnormSrgb, 0x00000052)
-	ENUM_ENTRY(ASTC10x5Unorm, 0x00000053)
-	ENUM_ENTRY(ASTC10x5UnormSrgb, 0x00000054)
-	ENUM_ENTRY(ASTC10x6Unorm, 0x00000055)
-	ENUM_ENTRY(ASTC10x6UnormSrgb, 0x00000056)
-	ENUM_ENTRY(ASTC10x8Unorm, 0x00000057)
-	ENUM_ENTRY(ASTC10x8UnormSrgb, 0x00000058)
-	ENUM_ENTRY(ASTC10x10Unorm, 0x00000059)
-	ENUM_ENTRY(ASTC10x10UnormSrgb, 0x0000005A)
-	ENUM_ENTRY(ASTC12x10Unorm, 0x0000005B)
-	ENUM_ENTRY(ASTC12x10UnormSrgb, 0x0000005C)
-	ENUM_ENTRY(ASTC12x12Unorm, 0x0000005D)
-	ENUM_ENTRY(ASTC12x12UnormSrgb, 0x0000005E)
+	ENUM_ENTRY(RGB10A2Uint, 0x00000019)
+	ENUM_ENTRY(RGB10A2Unorm, 0x0000001A)
+	ENUM_ENTRY(RG11B10Ufloat, 0x0000001B)
+	ENUM_ENTRY(RGB9E5Ufloat, 0x0000001C)
+	ENUM_ENTRY(RG32Float, 0x0000001D)
+	ENUM_ENTRY(RG32Uint, 0x0000001E)
+	ENUM_ENTRY(RG32Sint, 0x0000001F)
+	ENUM_ENTRY(RGBA16Uint, 0x00000020)
+	ENUM_ENTRY(RGBA16Sint, 0x00000021)
+	ENUM_ENTRY(RGBA16Float, 0x00000022)
+	ENUM_ENTRY(RGBA32Float, 0x00000023)
+	ENUM_ENTRY(RGBA32Uint, 0x00000024)
+	ENUM_ENTRY(RGBA32Sint, 0x00000025)
+	ENUM_ENTRY(Stencil8, 0x00000026)
+	ENUM_ENTRY(Depth16Unorm, 0x00000027)
+	ENUM_ENTRY(Depth24Plus, 0x00000028)
+	ENUM_ENTRY(Depth24PlusStencil8, 0x00000029)
+	ENUM_ENTRY(Depth32Float, 0x0000002A)
+	ENUM_ENTRY(Depth32FloatStencil8, 0x0000002B)
+	ENUM_ENTRY(BC1RGBAUnorm, 0x0000002C)
+	ENUM_ENTRY(BC1RGBAUnormSrgb, 0x0000002D)
+	ENUM_ENTRY(BC2RGBAUnorm, 0x0000002E)
+	ENUM_ENTRY(BC2RGBAUnormSrgb, 0x0000002F)
+	ENUM_ENTRY(BC3RGBAUnorm, 0x00000030)
+	ENUM_ENTRY(BC3RGBAUnormSrgb, 0x00000031)
+	ENUM_ENTRY(BC4RUnorm, 0x00000032)
+	ENUM_ENTRY(BC4RSnorm, 0x00000033)
+	ENUM_ENTRY(BC5RGUnorm, 0x00000034)
+	ENUM_ENTRY(BC5RGSnorm, 0x00000035)
+	ENUM_ENTRY(BC6HRGBUfloat, 0x00000036)
+	ENUM_ENTRY(BC6HRGBFloat, 0x00000037)
+	ENUM_ENTRY(BC7RGBAUnorm, 0x00000038)
+	ENUM_ENTRY(BC7RGBAUnormSrgb, 0x00000039)
+	ENUM_ENTRY(ETC2RGB8Unorm, 0x0000003A)
+	ENUM_ENTRY(ETC2RGB8UnormSrgb, 0x0000003B)
+	ENUM_ENTRY(ETC2RGB8A1Unorm, 0x0000003C)
+	ENUM_ENTRY(ETC2RGB8A1UnormSrgb, 0x0000003D)
+	ENUM_ENTRY(ETC2RGBA8Unorm, 0x0000003E)
+	ENUM_ENTRY(ETC2RGBA8UnormSrgb, 0x0000003F)
+	ENUM_ENTRY(EACR11Unorm, 0x00000040)
+	ENUM_ENTRY(EACR11Snorm, 0x00000041)
+	ENUM_ENTRY(EACRG11Unorm, 0x00000042)
+	ENUM_ENTRY(EACRG11Snorm, 0x00000043)
+	ENUM_ENTRY(ASTC4x4Unorm, 0x00000044)
+	ENUM_ENTRY(ASTC4x4UnormSrgb, 0x00000045)
+	ENUM_ENTRY(ASTC5x4Unorm, 0x00000046)
+	ENUM_ENTRY(ASTC5x4UnormSrgb, 0x00000047)
+	ENUM_ENTRY(ASTC5x5Unorm, 0x00000048)
+	ENUM_ENTRY(ASTC5x5UnormSrgb, 0x00000049)
+	ENUM_ENTRY(ASTC6x5Unorm, 0x0000004A)
+	ENUM_ENTRY(ASTC6x5UnormSrgb, 0x0000004B)
+	ENUM_ENTRY(ASTC6x6Unorm, 0x0000004C)
+	ENUM_ENTRY(ASTC6x6UnormSrgb, 0x0000004D)
+	ENUM_ENTRY(ASTC8x5Unorm, 0x0000004E)
+	ENUM_ENTRY(ASTC8x5UnormSrgb, 0x0000004F)
+	ENUM_ENTRY(ASTC8x6Unorm, 0x00000050)
+	ENUM_ENTRY(ASTC8x6UnormSrgb, 0x00000051)
+	ENUM_ENTRY(ASTC8x8Unorm, 0x00000052)
+	ENUM_ENTRY(ASTC8x8UnormSrgb, 0x00000053)
+	ENUM_ENTRY(ASTC10x5Unorm, 0x00000054)
+	ENUM_ENTRY(ASTC10x5UnormSrgb, 0x00000055)
+	ENUM_ENTRY(ASTC10x6Unorm, 0x00000056)
+	ENUM_ENTRY(ASTC10x6UnormSrgb, 0x00000057)
+	ENUM_ENTRY(ASTC10x8Unorm, 0x00000058)
+	ENUM_ENTRY(ASTC10x8UnormSrgb, 0x00000059)
+	ENUM_ENTRY(ASTC10x10Unorm, 0x0000005A)
+	ENUM_ENTRY(ASTC10x10UnormSrgb, 0x0000005B)
+	ENUM_ENTRY(ASTC12x10Unorm, 0x0000005C)
+	ENUM_ENTRY(ASTC12x10UnormSrgb, 0x0000005D)
+	ENUM_ENTRY(ASTC12x12Unorm, 0x0000005E)
+	ENUM_ENTRY(ASTC12x12UnormSrgb, 0x0000005F)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
 ENUM(TextureSampleType)
@@ -650,6 +644,8 @@ ENUM(NativeSType)
 	ENUM_ENTRY(InstanceExtras, 0x00030006)
 	ENUM_ENTRY(BindGroupEntryExtras, 0x00030007)
 	ENUM_ENTRY(BindGroupLayoutEntryExtras, 0x00030008)
+	ENUM_ENTRY(QuerySetDescriptorExtras, 0x00030009)
+	ENUM_ENTRY(SurfaceConfigurationExtras, 0x0003000A)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
 ENUM(NativeFeature)
@@ -660,6 +656,9 @@ ENUM(NativeFeature)
 	ENUM_ENTRY(VertexWritableStorage, 0x00030005)
 	ENUM_ENTRY(TextureBindingArray, 0x00030006)
 	ENUM_ENTRY(SampledTextureAndStorageBufferArrayNonUniformIndexing, 0x00030007)
+	ENUM_ENTRY(PipelineStatisticsQuery, 0x00030008)
+	ENUM_ENTRY(StorageResourceBindingArray, 0x00030009)
+	ENUM_ENTRY(PartiallyBoundBindingArray, 0x0003000A)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
 ENUM(LogLevel)
@@ -703,6 +702,18 @@ ENUM(Gles3MinorVersion)
 	ENUM_ENTRY(Version2, 0x00000003)
 	ENUM_ENTRY(Force32, 0x7FFFFFFF)
 END
+ENUM(PipelineStatisticName)
+	ENUM_ENTRY(VertexShaderInvocations, 0x00000000)
+	ENUM_ENTRY(ClipperInvocations, 0x00000001)
+	ENUM_ENTRY(ClipperPrimitivesOut, 0x00000002)
+	ENUM_ENTRY(FragmentShaderInvocations, 0x00000003)
+	ENUM_ENTRY(ComputeShaderInvocations, 0x00000004)
+	ENUM_ENTRY(Force32, 0x7FFFFFFF)
+END
+ENUM(NativeQueryType)
+	ENUM_ENTRY(PipelineStatistics, 0x00030000)
+	ENUM_ENTRY(Force32, 0x7FFFFFFF)
+END
 
 // Structs
 STRUCT(ChainedStruct)
@@ -718,8 +729,8 @@ STRUCT(BlendComponent)
 END
 
 STRUCT(Color)
-	Color(double r, double g, double b, double a) : WGPUColor{ r, g, b, a } {}
 	void setDefault();
+	Color(double r, double g, double b, double a) : WGPUColor{ r, g, b, a } {}
 END
 
 STRUCT(ComputePassTimestampWrites)
@@ -727,8 +738,8 @@ STRUCT(ComputePassTimestampWrites)
 END
 
 STRUCT(Extent3D)
-	Extent3D(uint32_t width, uint32_t height, uint32_t depthOrArrayLayers) : WGPUExtent3D{ width, height, depthOrArrayLayers } {}
 	void setDefault();
+	Extent3D(uint32_t width, uint32_t height, uint32_t depthOrArrayLayers) : WGPUExtent3D{ width, height, depthOrArrayLayers } {}
 END
 
 STRUCT(Limits)
@@ -736,8 +747,8 @@ STRUCT(Limits)
 END
 
 STRUCT(Origin3D)
-	Origin3D(uint32_t x, uint32_t y, uint32_t z) : WGPUOrigin3D{ x, y, z } {}
 	void setDefault();
+	Origin3D(uint32_t x, uint32_t y, uint32_t z) : WGPUOrigin3D{ x, y, z } {}
 END
 
 STRUCT(PrimitiveDepthClipControl)
@@ -852,7 +863,7 @@ STRUCT(ShaderModuleGLSLDescriptor)
 	void setDefault();
 END
 
-STRUCT(StorageReport)
+STRUCT(RegistryReport)
 	void setDefault();
 END
 
@@ -869,6 +880,14 @@ STRUCT(BindGroupEntryExtras)
 END
 
 STRUCT(BindGroupLayoutEntryExtras)
+	void setDefault();
+END
+
+STRUCT(QuerySetDescriptorExtras)
+	void setDefault();
+END
+
+STRUCT(SurfaceConfigurationExtras)
 	void setDefault();
 END
 
@@ -960,6 +979,7 @@ END
 
 DESCRIPTOR(SurfaceCapabilities)
 	void setDefault();
+	void freeMembers();
 END
 
 DESCRIPTOR(SurfaceConfiguration)
@@ -1174,11 +1194,9 @@ HANDLE(CommandEncoder)
 END
 
 HANDLE(ComputePassEncoder)
-	void beginPipelineStatisticsQuery(QuerySet querySet, uint32_t queryIndex);
 	void dispatchWorkgroups(uint32_t workgroupCountX, uint32_t workgroupCountY, uint32_t workgroupCountZ);
 	void dispatchWorkgroupsIndirect(Buffer indirectBuffer, uint64_t indirectOffset);
 	void end();
-	void endPipelineStatisticsQuery();
 	void insertDebugMarker(char const * markerLabel);
 	void popDebugGroup();
 	void pushDebugGroup(char const * groupLabel);
@@ -1293,14 +1311,12 @@ END
 
 HANDLE(RenderPassEncoder)
 	void beginOcclusionQuery(uint32_t queryIndex);
-	void beginPipelineStatisticsQuery(QuerySet querySet, uint32_t queryIndex);
 	void draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
 	void drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t baseVertex, uint32_t firstInstance);
 	void drawIndexedIndirect(Buffer indirectBuffer, uint64_t indirectOffset);
 	void drawIndirect(Buffer indirectBuffer, uint64_t indirectOffset);
 	void end();
 	void endOcclusionQuery();
-	void endPipelineStatisticsQuery();
 	void executeBundles(size_t bundleCount, RenderBundle const * bundles);
 	void executeBundles(const std::vector<WGPURenderBundle>& bundles);
 	void executeBundles(const WGPURenderBundle& bundles);
@@ -1351,7 +1367,6 @@ HANDLE(Surface)
 	void unconfigure();
 	void reference();
 	void release();
-	void capabilitiesFreeMembers();
 END
 
 HANDLE(Texture)
@@ -1394,19 +1409,23 @@ Instance createInstance(const InstanceDescriptor& descriptor) {
 void ChainedStruct::setDefault() {
 }
 
+
 // Methods of ChainedStructOut
 void ChainedStructOut::setDefault() {
 }
+
 
 // Methods of AdapterProperties
 void AdapterProperties::setDefault() {
 	backendType = BackendType::Undefined;
 }
 
+
 // Methods of BindGroupEntry
 void BindGroupEntry::setDefault() {
 	offset = 0;
 }
+
 
 // Methods of BlendComponent
 void BlendComponent::setDefault() {
@@ -1415,6 +1434,7 @@ void BlendComponent::setDefault() {
 	dstFactor = BlendFactor::Zero;
 }
 
+
 // Methods of BufferBindingLayout
 void BufferBindingLayout::setDefault() {
 	type = BufferBindingType::Uniform;
@@ -1422,34 +1442,42 @@ void BufferBindingLayout::setDefault() {
 	minBindingSize = 0;
 }
 
+
 // Methods of BufferDescriptor
 void BufferDescriptor::setDefault() {
 	mappedAtCreation = false;
 }
 
+
 // Methods of Color
 void Color::setDefault() {
 }
+
 
 // Methods of CommandBufferDescriptor
 void CommandBufferDescriptor::setDefault() {
 }
 
+
 // Methods of CommandEncoderDescriptor
 void CommandEncoderDescriptor::setDefault() {
 }
+
 
 // Methods of CompilationMessage
 void CompilationMessage::setDefault() {
 }
 
+
 // Methods of ComputePassTimestampWrites
 void ComputePassTimestampWrites::setDefault() {
 }
 
+
 // Methods of ConstantEntry
 void ConstantEntry::setDefault() {
 }
+
 
 // Methods of Extent3D
 void Extent3D::setDefault() {
@@ -1457,9 +1485,11 @@ void Extent3D::setDefault() {
 	depthOrArrayLayers = 1;
 }
 
+
 // Methods of InstanceDescriptor
 void InstanceDescriptor::setDefault() {
 }
+
 
 // Methods of Limits
 void Limits::setDefault() {
@@ -1496,12 +1526,14 @@ void Limits::setDefault() {
 	maxComputeWorkgroupsPerDimension = 0;
 }
 
+
 // Methods of MultisampleState
 void MultisampleState::setDefault() {
 	count = 1;
 	mask = 0xFFFFFFFF;
 	alphaToCoverageEnabled = false;
 }
+
 
 // Methods of Origin3D
 void Origin3D::setDefault() {
@@ -1510,9 +1542,11 @@ void Origin3D::setDefault() {
 	z = 0;
 }
 
+
 // Methods of PipelineLayoutDescriptor
 void PipelineLayoutDescriptor::setDefault() {
 }
+
 
 // Methods of PrimitiveDepthClipControl
 void PrimitiveDepthClipControl::setDefault() {
@@ -1520,6 +1554,7 @@ void PrimitiveDepthClipControl::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
 	chain.sType = SType::PrimitiveDepthClipControl;
 }
+
 
 // Methods of PrimitiveState
 void PrimitiveState::setDefault() {
@@ -1529,17 +1564,21 @@ void PrimitiveState::setDefault() {
 	cullMode = CullMode::None;
 }
 
+
 // Methods of QuerySetDescriptor
 void QuerySetDescriptor::setDefault() {
 }
+
 
 // Methods of QueueDescriptor
 void QueueDescriptor::setDefault() {
 }
 
+
 // Methods of RenderBundleDescriptor
 void RenderBundleDescriptor::setDefault() {
 }
+
 
 // Methods of RenderBundleEncoderDescriptor
 void RenderBundleEncoderDescriptor::setDefault() {
@@ -1548,6 +1587,7 @@ void RenderBundleEncoderDescriptor::setDefault() {
 	stencilReadOnly = false;
 	sampleCount = 1;
 }
+
 
 // Methods of RenderPassDepthStencilAttachment
 void RenderPassDepthStencilAttachment::setDefault() {
@@ -1560,15 +1600,18 @@ void RenderPassDepthStencilAttachment::setDefault() {
 	stencilReadOnly = false;
 }
 
+
 // Methods of RenderPassDescriptorMaxDrawCount
 void RenderPassDescriptorMaxDrawCount::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
 	chain.sType = SType::RenderPassDescriptorMaxDrawCount;
 }
 
+
 // Methods of RenderPassTimestampWrites
 void RenderPassTimestampWrites::setDefault() {
 }
+
 
 // Methods of RequestAdapterOptions
 void RequestAdapterOptions::setDefault() {
@@ -1577,10 +1620,12 @@ void RequestAdapterOptions::setDefault() {
 	forceFallbackAdapter = false;
 }
 
+
 // Methods of SamplerBindingLayout
 void SamplerBindingLayout::setDefault() {
 	type = SamplerBindingType::Filtering;
 }
+
 
 // Methods of SamplerDescriptor
 void SamplerDescriptor::setDefault() {
@@ -1595,9 +1640,11 @@ void SamplerDescriptor::setDefault() {
 	compare = CompareFunction::Undefined;
 }
 
+
 // Methods of ShaderModuleCompilationHint
 void ShaderModuleCompilationHint::setDefault() {
 }
+
 
 // Methods of ShaderModuleSPIRVDescriptor
 void ShaderModuleSPIRVDescriptor::setDefault() {
@@ -1605,11 +1652,13 @@ void ShaderModuleSPIRVDescriptor::setDefault() {
 	chain.sType = SType::ShaderModuleSPIRVDescriptor;
 }
 
+
 // Methods of ShaderModuleWGSLDescriptor
 void ShaderModuleWGSLDescriptor::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
 	chain.sType = SType::ShaderModuleWGSLDescriptor;
 }
+
 
 // Methods of StencilFaceState
 void StencilFaceState::setDefault() {
@@ -1619,6 +1668,7 @@ void StencilFaceState::setDefault() {
 	passOp = StencilOperation::Keep;
 }
 
+
 // Methods of StorageTextureBindingLayout
 void StorageTextureBindingLayout::setDefault() {
 	access = StorageTextureAccess::WriteOnly;
@@ -1626,18 +1676,25 @@ void StorageTextureBindingLayout::setDefault() {
 	viewDimension = TextureViewDimension::_2D;
 }
 
+
 // Methods of SurfaceCapabilities
 void SurfaceCapabilities::setDefault() {
 }
+void SurfaceCapabilities::freeMembers() {
+	return wgpuSurfaceCapabilitiesFreeMembers(*this);
+}
+
 
 // Methods of SurfaceConfiguration
 void SurfaceConfiguration::setDefault() {
 	format = TextureFormat::Undefined;
 }
 
+
 // Methods of SurfaceDescriptor
 void SurfaceDescriptor::setDefault() {
 }
+
 
 // Methods of SurfaceDescriptorFromAndroidNativeWindow
 void SurfaceDescriptorFromAndroidNativeWindow::setDefault() {
@@ -1645,11 +1702,13 @@ void SurfaceDescriptorFromAndroidNativeWindow::setDefault() {
 	chain.sType = SType::SurfaceDescriptorFromAndroidNativeWindow;
 }
 
+
 // Methods of SurfaceDescriptorFromCanvasHTMLSelector
 void SurfaceDescriptorFromCanvasHTMLSelector::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
 	chain.sType = SType::SurfaceDescriptorFromCanvasHTMLSelector;
 }
+
 
 // Methods of SurfaceDescriptorFromMetalLayer
 void SurfaceDescriptorFromMetalLayer::setDefault() {
@@ -1657,11 +1716,13 @@ void SurfaceDescriptorFromMetalLayer::setDefault() {
 	chain.sType = SType::SurfaceDescriptorFromMetalLayer;
 }
 
+
 // Methods of SurfaceDescriptorFromWaylandSurface
 void SurfaceDescriptorFromWaylandSurface::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
 	chain.sType = SType::SurfaceDescriptorFromWaylandSurface;
 }
+
 
 // Methods of SurfaceDescriptorFromWindowsHWND
 void SurfaceDescriptorFromWindowsHWND::setDefault() {
@@ -1669,11 +1730,13 @@ void SurfaceDescriptorFromWindowsHWND::setDefault() {
 	chain.sType = SType::SurfaceDescriptorFromWindowsHWND;
 }
 
+
 // Methods of SurfaceDescriptorFromXcbWindow
 void SurfaceDescriptorFromXcbWindow::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
 	chain.sType = SType::SurfaceDescriptorFromXcbWindow;
 }
+
 
 // Methods of SurfaceDescriptorFromXlibWindow
 void SurfaceDescriptorFromXlibWindow::setDefault() {
@@ -1681,9 +1744,11 @@ void SurfaceDescriptorFromXlibWindow::setDefault() {
 	chain.sType = SType::SurfaceDescriptorFromXlibWindow;
 }
 
+
 // Methods of SurfaceTexture
 void SurfaceTexture::setDefault() {
 }
+
 
 // Methods of TextureBindingLayout
 void TextureBindingLayout::setDefault() {
@@ -1692,9 +1757,11 @@ void TextureBindingLayout::setDefault() {
 	multisampled = false;
 }
 
+
 // Methods of TextureDataLayout
 void TextureDataLayout::setDefault() {
 }
+
 
 // Methods of TextureViewDescriptor
 void TextureViewDescriptor::setDefault() {
@@ -1705,14 +1772,17 @@ void TextureViewDescriptor::setDefault() {
 	aspect = TextureAspect::All;
 }
 
+
 // Methods of VertexAttribute
 void VertexAttribute::setDefault() {
 	format = VertexFormat::Undefined;
 }
 
+
 // Methods of BindGroupDescriptor
 void BindGroupDescriptor::setDefault() {
 }
+
 
 // Methods of BindGroupLayoutEntry
 void BindGroupLayoutEntry::setDefault() {
@@ -1726,19 +1796,23 @@ void BindGroupLayoutEntry::setDefault() {
 	texture.sampleType = TextureSampleType::Undefined;
 }
 
+
 // Methods of BlendState
 void BlendState::setDefault() {
 	((BlendComponent*)&color)->setDefault();
 	((BlendComponent*)&alpha)->setDefault();
 }
 
+
 // Methods of CompilationInfo
 void CompilationInfo::setDefault() {
 }
 
+
 // Methods of ComputePassDescriptor
 void ComputePassDescriptor::setDefault() {
 }
+
 
 // Methods of DepthStencilState
 void DepthStencilState::setDefault() {
@@ -1753,10 +1827,12 @@ void DepthStencilState::setDefault() {
 	((StencilFaceState*)&stencilBack)->setDefault();
 }
 
+
 // Methods of ImageCopyBuffer
 void ImageCopyBuffer::setDefault() {
 	((TextureDataLayout*)&layout)->setDefault();
 }
+
 
 // Methods of ImageCopyTexture
 void ImageCopyTexture::setDefault() {
@@ -1765,9 +1841,11 @@ void ImageCopyTexture::setDefault() {
 	((Origin3D*)&origin)->setDefault();
 }
 
+
 // Methods of ProgrammableStageDescriptor
 void ProgrammableStageDescriptor::setDefault() {
 }
+
 
 // Methods of RenderPassColorAttachment
 void RenderPassColorAttachment::setDefault() {
@@ -1776,19 +1854,23 @@ void RenderPassColorAttachment::setDefault() {
 	((Color*)&clearValue)->setDefault();
 }
 
+
 // Methods of RequiredLimits
 void RequiredLimits::setDefault() {
 	((Limits*)&limits)->setDefault();
 }
 
+
 // Methods of ShaderModuleDescriptor
 void ShaderModuleDescriptor::setDefault() {
 }
+
 
 // Methods of SupportedLimits
 void SupportedLimits::setDefault() {
 	((Limits*)&limits)->setDefault();
 }
+
 
 // Methods of TextureDescriptor
 void TextureDescriptor::setDefault() {
@@ -1799,41 +1881,50 @@ void TextureDescriptor::setDefault() {
 	((Extent3D*)&size)->setDefault();
 }
 
+
 // Methods of VertexBufferLayout
 void VertexBufferLayout::setDefault() {
 	stepMode = VertexStepMode::Vertex;
 }
 
+
 // Methods of BindGroupLayoutDescriptor
 void BindGroupLayoutDescriptor::setDefault() {
 }
+
 
 // Methods of ColorTargetState
 void ColorTargetState::setDefault() {
 	format = TextureFormat::Undefined;
 }
 
+
 // Methods of ComputePipelineDescriptor
 void ComputePipelineDescriptor::setDefault() {
 	((ProgrammableStageDescriptor*)&compute)->setDefault();
 }
+
 
 // Methods of DeviceDescriptor
 void DeviceDescriptor::setDefault() {
 	((QueueDescriptor*)&defaultQueue)->setDefault();
 }
 
+
 // Methods of RenderPassDescriptor
 void RenderPassDescriptor::setDefault() {
 }
+
 
 // Methods of VertexState
 void VertexState::setDefault() {
 }
 
+
 // Methods of FragmentState
 void FragmentState::setDefault() {
 }
+
 
 // Methods of RenderPipelineDescriptor
 void RenderPipelineDescriptor::setDefault() {
@@ -1842,6 +1933,7 @@ void RenderPipelineDescriptor::setDefault() {
 	((MultisampleState*)&multisample)->setDefault();
 }
 
+
 // Methods of InstanceExtras
 void InstanceExtras::setDefault() {
 	dx12ShaderCompiler = Dx12Compiler::Undefined;
@@ -1849,15 +1941,18 @@ void InstanceExtras::setDefault() {
 	chain.sType = (WGPUSType)NativeSType::InstanceExtras;
 }
 
+
 // Methods of DeviceExtras
 void DeviceExtras::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
 	chain.sType = (WGPUSType)NativeSType::DeviceExtras;
 }
 
+
 // Methods of NativeLimits
 void NativeLimits::setDefault() {
 }
+
 
 // Methods of RequiredLimitsExtras
 void RequiredLimitsExtras::setDefault() {
@@ -1866,6 +1961,7 @@ void RequiredLimitsExtras::setDefault() {
 	chain.sType = (WGPUSType)NativeSType::RequiredLimitsExtras;
 }
 
+
 // Methods of SupportedLimitsExtras
 void SupportedLimitsExtras::setDefault() {
 	((ChainedStructOut*)&chain)->setDefault();
@@ -1873,9 +1969,11 @@ void SupportedLimitsExtras::setDefault() {
 	chain.sType = (WGPUSType)NativeSType::SupportedLimitsExtras;
 }
 
+
 // Methods of PushConstantRange
 void PushConstantRange::setDefault() {
 }
+
 
 // Methods of PipelineLayoutExtras
 void PipelineLayoutExtras::setDefault() {
@@ -1883,13 +1981,16 @@ void PipelineLayoutExtras::setDefault() {
 	chain.sType = (WGPUSType)NativeSType::PipelineLayoutExtras;
 }
 
+
 // Methods of WrappedSubmissionIndex
 void WrappedSubmissionIndex::setDefault() {
 }
 
+
 // Methods of ShaderDefine
 void ShaderDefine::setDefault() {
 }
+
 
 // Methods of ShaderModuleGLSLDescriptor
 void ShaderModuleGLSLDescriptor::setDefault() {
@@ -1897,43 +1998,48 @@ void ShaderModuleGLSLDescriptor::setDefault() {
 	chain.sType = (WGPUSType)NativeSType::ShaderModuleGLSLDescriptor;
 }
 
-// Methods of StorageReport
-void StorageReport::setDefault() {
+
+// Methods of RegistryReport
+void RegistryReport::setDefault() {
 }
+
 
 // Methods of HubReport
 void HubReport::setDefault() {
-	((StorageReport*)&adapters)->setDefault();
-	((StorageReport*)&devices)->setDefault();
-	((StorageReport*)&pipelineLayouts)->setDefault();
-	((StorageReport*)&shaderModules)->setDefault();
-	((StorageReport*)&bindGroupLayouts)->setDefault();
-	((StorageReport*)&bindGroups)->setDefault();
-	((StorageReport*)&commandBuffers)->setDefault();
-	((StorageReport*)&renderBundles)->setDefault();
-	((StorageReport*)&renderPipelines)->setDefault();
-	((StorageReport*)&computePipelines)->setDefault();
-	((StorageReport*)&querySets)->setDefault();
-	((StorageReport*)&buffers)->setDefault();
-	((StorageReport*)&textures)->setDefault();
-	((StorageReport*)&textureViews)->setDefault();
-	((StorageReport*)&samplers)->setDefault();
+	((RegistryReport*)&adapters)->setDefault();
+	((RegistryReport*)&devices)->setDefault();
+	((RegistryReport*)&queues)->setDefault();
+	((RegistryReport*)&pipelineLayouts)->setDefault();
+	((RegistryReport*)&shaderModules)->setDefault();
+	((RegistryReport*)&bindGroupLayouts)->setDefault();
+	((RegistryReport*)&bindGroups)->setDefault();
+	((RegistryReport*)&commandBuffers)->setDefault();
+	((RegistryReport*)&renderBundles)->setDefault();
+	((RegistryReport*)&renderPipelines)->setDefault();
+	((RegistryReport*)&computePipelines)->setDefault();
+	((RegistryReport*)&querySets)->setDefault();
+	((RegistryReport*)&buffers)->setDefault();
+	((RegistryReport*)&textures)->setDefault();
+	((RegistryReport*)&textureViews)->setDefault();
+	((RegistryReport*)&samplers)->setDefault();
 }
+
 
 // Methods of GlobalReport
 void GlobalReport::setDefault() {
 	backendType = BackendType::Undefined;
-	((StorageReport*)&surfaces)->setDefault();
+	((RegistryReport*)&surfaces)->setDefault();
 	((HubReport*)&vulkan)->setDefault();
 	((HubReport*)&metal)->setDefault();
 	((HubReport*)&dx12)->setDefault();
-	((HubReport*)&dx11)->setDefault();
 	((HubReport*)&gl)->setDefault();
 }
+
 
 // Methods of InstanceEnumerateAdapterOptions
 void InstanceEnumerateAdapterOptions::setDefault() {
 }
+
 
 // Methods of BindGroupEntryExtras
 void BindGroupEntryExtras::setDefault() {
@@ -1941,11 +2047,27 @@ void BindGroupEntryExtras::setDefault() {
 	chain.sType = (WGPUSType)NativeSType::BindGroupEntryExtras;
 }
 
+
 // Methods of BindGroupLayoutEntryExtras
 void BindGroupLayoutEntryExtras::setDefault() {
 	((ChainedStruct*)&chain)->setDefault();
 	chain.sType = (WGPUSType)NativeSType::BindGroupLayoutEntryExtras;
 }
+
+
+// Methods of QuerySetDescriptorExtras
+void QuerySetDescriptorExtras::setDefault() {
+	((ChainedStruct*)&chain)->setDefault();
+	chain.sType = (WGPUSType)NativeSType::QuerySetDescriptorExtras;
+}
+
+
+// Methods of SurfaceConfigurationExtras
+void SurfaceConfigurationExtras::setDefault() {
+	((ChainedStruct*)&chain)->setDefault();
+	chain.sType = (WGPUSType)NativeSType::SurfaceConfigurationExtras;
+}
+
 
 // Methods of Adapter
 size_t Adapter::enumerateFeatures(FeatureName * features) {
@@ -2113,9 +2235,6 @@ void CommandEncoder::release() {
 
 
 // Methods of ComputePassEncoder
-void ComputePassEncoder::beginPipelineStatisticsQuery(QuerySet querySet, uint32_t queryIndex) {
-	return wgpuComputePassEncoderBeginPipelineStatisticsQuery(m_raw, querySet, queryIndex);
-}
 void ComputePassEncoder::dispatchWorkgroups(uint32_t workgroupCountX, uint32_t workgroupCountY, uint32_t workgroupCountZ) {
 	return wgpuComputePassEncoderDispatchWorkgroups(m_raw, workgroupCountX, workgroupCountY, workgroupCountZ);
 }
@@ -2124,9 +2243,6 @@ void ComputePassEncoder::dispatchWorkgroupsIndirect(Buffer indirectBuffer, uint6
 }
 void ComputePassEncoder::end() {
 	return wgpuComputePassEncoderEnd(m_raw);
-}
-void ComputePassEncoder::endPipelineStatisticsQuery() {
-	return wgpuComputePassEncoderEndPipelineStatisticsQuery(m_raw);
 }
 void ComputePassEncoder::insertDebugMarker(char const * markerLabel) {
 	return wgpuComputePassEncoderInsertDebugMarker(m_raw, markerLabel);
@@ -2449,9 +2565,6 @@ void RenderBundleEncoder::release() {
 void RenderPassEncoder::beginOcclusionQuery(uint32_t queryIndex) {
 	return wgpuRenderPassEncoderBeginOcclusionQuery(m_raw, queryIndex);
 }
-void RenderPassEncoder::beginPipelineStatisticsQuery(QuerySet querySet, uint32_t queryIndex) {
-	return wgpuRenderPassEncoderBeginPipelineStatisticsQuery(m_raw, querySet, queryIndex);
-}
 void RenderPassEncoder::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) {
 	return wgpuRenderPassEncoderDraw(m_raw, vertexCount, instanceCount, firstVertex, firstInstance);
 }
@@ -2469,9 +2582,6 @@ void RenderPassEncoder::end() {
 }
 void RenderPassEncoder::endOcclusionQuery() {
 	return wgpuRenderPassEncoderEndOcclusionQuery(m_raw);
-}
-void RenderPassEncoder::endPipelineStatisticsQuery() {
-	return wgpuRenderPassEncoderEndPipelineStatisticsQuery(m_raw);
 }
 void RenderPassEncoder::executeBundles(size_t bundleCount, RenderBundle const * bundles) {
 	return wgpuRenderPassEncoderExecuteBundles(m_raw, bundleCount, reinterpret_cast<WGPURenderBundle const *>(bundles));
@@ -2604,9 +2714,6 @@ void Surface::reference() {
 }
 void Surface::release() {
 	return wgpuSurfaceRelease(m_raw);
-}
-void Surface::capabilitiesFreeMembers() {
-	return wgpuSurfaceCapabilitiesFreeMembers(m_raw);
 }
 
 
