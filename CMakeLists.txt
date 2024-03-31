@@ -14,6 +14,10 @@ if (EMSCRIPTEN)
 	# This is used to advertise the flavor of WebGPU that this zip provides
 	target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_EMSCRIPTEN)
 
+	target_link_options(webgpu INTERFACE
+		-sUSE_WEBGPU # Handle WebGPU symbols
+	)
+
 else (EMSCRIPTEN)
 
 	include(cmake/FetchDawn.cmake)
