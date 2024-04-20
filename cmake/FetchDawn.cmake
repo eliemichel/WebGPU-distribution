@@ -79,6 +79,8 @@ set(AllDawnTargets
 	webgpu_dawn
 	webgpu_headers_gen
 	
+	tint-format
+	tint-lint
 	tint_api
 	tint_api_common
 	tint_api_options
@@ -96,12 +98,18 @@ set(AllDawnTargets
 	tint_lang_glsl_validate
 	tint_lang_glsl_writer_raise
 	tint_lang_hlsl_writer_common
+	tint_lang_hlsl_writer_helpers
+	tint_lang_msl
+	tint_lang_msl_intrinsic
+	tint_lang_msl_ir
 	tint_lang_msl_writer_raise
 	tint_lang_spirv
 	tint_lang_spirv_intrinsic
 	tint_lang_spirv_ir
 	tint_lang_spirv_reader_common
+	tint_lang_spirv_reader_lower
 	tint_lang_spirv_type
+	tint_lang_spirv_validate
 	tint_lang_spirv_writer
 	tint_lang_spirv_writer_ast_printer
 	tint_lang_spirv_writer_ast_raise
@@ -112,6 +120,8 @@ set(AllDawnTargets
 	tint_lang_wgsl
 	tint_lang_wgsl_ast
 	tint_lang_wgsl_ast_transform
+	tint_lang_wgsl_common
+	tint_lang_wgsl_features
 	tint_lang_wgsl_helpers
 	tint_lang_wgsl_inspector
 	tint_lang_wgsl_intrinsic
@@ -128,6 +138,7 @@ set(AllDawnTargets
 	tint_lang_wgsl_writer_ir_to_program
 	tint_lang_wgsl_writer_raise
 	tint_lang_wgsl_writer_syntax_tree_printer
+	tint_utils_bytes
 	tint_utils_cli
 	tint_utils_command
 	tint_utils_containers
@@ -146,15 +157,19 @@ set(AllDawnTargets
 	tint_utils_socket
 	tint_utils_strconv
 	tint_utils_symbol
+	tint_utils_system
 	tint_utils_text
 	tint_utils_traits
-	tint-format
-	tint-lint
 )
 
 foreach (Target ${AllDawnTargets})
 	if (TARGET ${Target})
-		set_property(TARGET ${Target} PROPERTY FOLDER "Dawn")
+		# Is a target...
+		get_property(AliasedTarget TARGET "${Target}" PROPERTY ALIASED_TARGET)
+		if("${AliasedTarget}" STREQUAL "")
+			# ...and is not an alias -> move to the Dawn folder
+			set_property(TARGET ${Target} PROPERTY FOLDER "Dawn")
+		endif()
 	endif()
 endforeach()
 
