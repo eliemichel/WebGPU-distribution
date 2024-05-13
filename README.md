@@ -13,7 +13,7 @@
 WebGPU distribution
 ===================
 
-This `fetch-wgpu` branch retrieves precompiled binaries directly from [wgpu-native](https://github.com/gfx-rs/wgpu-native)'s official releases.
+This `fetch-wgpu` branch retrieves precompiled binaries directly from [wgpu-native](https://github.com/gfx-rs/wgpu-native)'s official releases. It only downloads the binary release that is needed for the target platform, but contrary to the `wgpu` it requires to have access to Internet at configuration time.
 
 Overview
 --------
