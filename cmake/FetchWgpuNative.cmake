@@ -1,3 +1,28 @@
+# This file is part of the "Learn WebGPU for C++" book.
+#   https://eliemichel.github.io/LearnWebGPU
+#   https://github.com/eliemichel/WebGPU-distribution/blob/dev-fetch-wgpu/cmake/FetchWgpuNative.cmake
+# 
+# MIT License
+# Copyright (c) 2023-2024 Elie Michel and the wgpu-native authors
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 include(FetchContent)
 
 if (TARGET webgpu)
@@ -40,7 +65,7 @@ else (EMSCRIPTEN)
 	elseif (WGPU_LINK_TYPE STREQUAL "STATIC")
 		set(USE_DYNAMIC_LIB FALSE)
 	else()
-		message(FATAL_ERROR "Link type '${WGPU_LINK_TYPE}'is not valid. Possible values for WGPU_LINK_TYPE are DYNAMIC and STATIC.")
+		message(FATAL_ERROR "Link type '${WGPU_LINK_TYPE}' is not valid. Possible values for WGPU_LINK_TYPE are DYNAMIC and STATIC.")
 	endif()
 
 	set(URL_OS)
@@ -74,7 +99,7 @@ else (EMSCRIPTEN)
 
 	else()
 
-		message(FATAL_ERROR "Platform system ${CMAKE_SYSTEM_NAME} not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
+		message(FATAL_ERROR "Platform system '${CMAKE_SYSTEM_NAME}' not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
 
 	endif()
 
@@ -86,7 +111,7 @@ else (EMSCRIPTEN)
 	elseif (ARCH STREQUAL "i686" AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
 		set(URL_ARCH "i686")
 	else()
-		message(FATAL_ERROR "Platform architecture ${ARCH} not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
+		message(FATAL_ERROR "Platform architecture '${ARCH}' not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
 	endif()
 
 	set(URL_CONFIG release)
@@ -111,7 +136,11 @@ else (EMSCRIPTEN)
 
 	# A pre-compiled target (IMPORTED) that is a dynamically
 	# linked library (SHARED, meaning .dll, .so or .dylib).
-	add_library(webgpu SHARED IMPORTED GLOBAL)
+	if (USE_DYNAMIC_LIB)
+		add_library(webgpu SHARED IMPORTED GLOBAL)
+	else()
+		add_library(webgpu STATIC IMPORTED GLOBAL)
+	endif()
 
 	# This is used to advertise the flavor of WebGPU that this zip provides
 	target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_WGPU)
@@ -124,62 +153,71 @@ else (EMSCRIPTEN)
 			INTERFACE_INCLUDE_DIRECTORIES "${ZIP_DIR}/include"
 	)
 
-	if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+	if (USE_DYNAMIC_LIB)
 
-		set_target_properties(
-			webgpu
-			PROPERTIES
-				IMPORTED_IMPLIB "${WGPU_RUNTIME_LIB}.lib"
-		)
+		if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
-	elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+			set_target_properties(
+				webgpu
+				PROPERTIES
+					IMPORTED_IMPLIB "${WGPU_RUNTIME_LIB}.lib"
+			)
 
-		set_target_properties(
-			webgpu
-			PROPERTIES
-				IMPORTED_NO_SONAME TRUE
-		)
+		elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
-	endif()
+			set_target_properties(
+				webgpu
+				PROPERTIES
+					IMPORTED_NO_SONAME TRUE
+			)
 
-	message(STATUS "Using WebGPU runtime from '${WGPU_RUNTIME_LIB}'")
-	#set(WGPU_RUNTIME_LIB ${WGPU_RUNTIME_LIB} PARENT_SCOPE)
-	set(WGPU_RUNTIME_LIB ${WGPU_RUNTIME_LIB} CACHE INTERNAL "Path to the WebGPU library binary")
+		endif()
 
-	# The application's binary must find wgpu.dll or libwgpu.so at runtime,
-	# so we automatically copy it (it's called WGPU_RUNTIME_LIB in general)
-	# next to the binary.
-	# Also make sure that the binary's RPATH is set to find this shared library.
-	function(target_copy_webgpu_binaries Target)
-		add_custom_command(
-			TARGET ${Target} POST_BUILD
-			COMMAND
-				${CMAKE_COMMAND} -E copy_if_different
-				${WGPU_RUNTIME_LIB}
-				$<TARGET_FILE_DIR:${Target}>
-			COMMENT
-				"Copying '${WGPU_RUNTIME_LIB}' to '$<TARGET_FILE_DIR:${Target}>'..."
-		)
+		message(STATUS "Using WebGPU runtime from '${WGPU_RUNTIME_LIB}'")
+		#set(WGPU_RUNTIME_LIB ${WGPU_RUNTIME_LIB} PARENT_SCOPE)
+		set(WGPU_RUNTIME_LIB ${WGPU_RUNTIME_LIB} CACHE INTERNAL "Path to the WebGPU library binary")
 
-		if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-			# Bug fix, there might be a cleaner way to do this but no INSTALL_RPATH
-			# or related target properties seem to be a solution.
-			set_target_properties(${Target} PROPERTIES INSTALL_RPATH "./")
-			if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
-				set(ARCH_DIR aarch64)
-			else()
-				set(ARCH_DIR ${CMAKE_SYSTEM_PROCESSOR})
-			endif()
+		# The application's binary must find wgpu.dll or libwgpu.so at runtime,
+		# so we automatically copy it (it's called WGPU_RUNTIME_LIB in general)
+		# next to the binary.
+		# Also make sure that the binary's RPATH is set to find this shared library.
+		function(target_copy_webgpu_binaries Target)
 			add_custom_command(
 				TARGET ${Target} POST_BUILD
 				COMMAND
-					${CMAKE_INSTALL_NAME_TOOL} "-change"
-					"/Users/runner/work/wgpu-native/wgpu-native/target/${ARCH_DIR}-apple-darwin/release/deps/libwgpu_native.dylib"
-					"@executable_path/libwgpu_native.dylib"
-					"$<TARGET_FILE:${Target}>"
-				VERBATIM
+					${CMAKE_COMMAND} -E copy_if_different
+					${WGPU_RUNTIME_LIB}
+					$<TARGET_FILE_DIR:${Target}>
+				COMMENT
+					"Copying '${WGPU_RUNTIME_LIB}' to '$<TARGET_FILE_DIR:${Target}>'..."
 			)
-		endif()
-	endfunction()
+
+			if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+				# Bug fix, there might be a cleaner way to do this but no INSTALL_RPATH
+				# or related target properties seem to be a solution.
+				set_target_properties(${Target} PROPERTIES INSTALL_RPATH "./")
+				if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+					set(ARCH_DIR aarch64)
+				else()
+					set(ARCH_DIR ${CMAKE_SYSTEM_PROCESSOR})
+				endif()
+				add_custom_command(
+					TARGET ${Target} POST_BUILD
+					COMMAND
+						${CMAKE_INSTALL_NAME_TOOL} "-change"
+						"/Users/runner/work/wgpu-native/wgpu-native/target/${ARCH_DIR}-apple-darwin/release/deps/libwgpu_native.dylib"
+						"@executable_path/libwgpu_native.dylib"
+						"$<TARGET_FILE:${Target}>"
+					VERBATIM
+				)
+			endif()
+		endfunction()
+
+	else (USE_DYNAMIC_LIB)
+
+		function(target_copy_webgpu_binaries Target)
+		endfunction()
+
+	endif (USE_DYNAMIC_LIB)
 
 endif (EMSCRIPTEN)
