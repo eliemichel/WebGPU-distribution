@@ -32,15 +32,20 @@ include(FetchContent)
 FetchContent_Declare(
 	dawn
 	#GIT_REPOSITORY https://dawn.googlesource.com/dawn
-	#GIT_TAG        chromium/6429
+	#GIT_TAG        chromium/6512
 	#GIT_SHALLOW ON
 
 	# Manual download mode, even shallower than GIT_SHALLOW ON
 	DOWNLOAD_COMMAND
 		cd ${FETCHCONTENT_BASE_DIR}/dawn-src &&
 		git init &&
-		git fetch --depth=1 https://dawn.googlesource.com/dawn chromium/6429 &&
+		git fetch --depth=1 https://dawn.googlesource.com/dawn chromium/6512 &&
 		git reset --hard FETCH_HEAD
+
+	PATCH_COMMAND
+		"${CMAKE_COMMAND}" -E copy
+		"${CMAKE_CURRENT_LIST_DIR}/../patch/tools/fetch_dawn_dependencies.py"
+		tools
 )
 
 FetchContent_GetProperties(dawn)
@@ -118,6 +123,7 @@ set(AllDawnTargets
 	tint_lang_core_intrinsic
 	tint_lang_core_ir
 	tint_lang_core_ir_transform
+	tint_lang_core_ir_transform_common
 	tint_lang_core_type
 	tint_lang_glsl_validate
 	tint_lang_glsl_writer_raise
