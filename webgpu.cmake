@@ -54,7 +54,7 @@ if (NOT TARGET webgpu)
 		FetchContent_DeclareShallowGit(
 			webgpu-backend-emscripten
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        emscripten-v3.1.61
+			GIT_TAG        e0038567ca1e35ffa9a848760eb6c49450264305 # emscripten-v3.1.61 + fix
 		)
 		FetchContent_MakeAvailable(webgpu-backend-emscripten)
 
@@ -63,25 +63,25 @@ if (NOT TARGET webgpu)
 		FetchContent_DeclareShallowGit(
 			webgpu-backend-wgpu
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        7c0e23b29ac6b9518bbc81d6177776c3ad890f21 # wgpu-v0.19.4.1 + fix
+			GIT_TAG        2886841e10f720640fd0a400e0177d2db2e4da81 # wgpu-v0.19.4.1 + fix
 		)
 		FetchContent_MakeAvailable(webgpu-backend-wgpu)
 
 	elseif (WEBGPU_BACKEND_U STREQUAL "WGPU_STATIC")
 
 		FetchContent_DeclareShallowGit(
-			webgpu-backend-wgpu
+			webgpu-backend-wgpu-static
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        25e25a6e2d01ebf0f6395bc38a4e5dbf4489558f # wgpu-static-v0.19.4.1 + fix
+			GIT_TAG        f2219d45d308d7907bbc6e5f5cd37034c3997687 # wgpu-static-v0.19.4.1 + fix
 		)
-		FetchContent_MakeAvailable(webgpu-backend-wgpu)
+		FetchContent_MakeAvailable(webgpu-backend-wgpu-static)
 
 	elseif (WEBGPU_BACKEND_U STREQUAL "DAWN")
 
 		FetchContent_DeclareShallowGit(
 			webgpu-backend-dawn
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        94496bb907989f5eaaad2a02fed66bd60dd13848 # dawn-6512 + emscripten-v3.1.61 + fix
+			GIT_TAG        b3082d247df326c2e2dd1c64d5a148bc3cf1167f # dawn-6512 + emscripten-v3.1.61 + fix
 		)
 		FetchContent_MakeAvailable(webgpu-backend-dawn)
 
