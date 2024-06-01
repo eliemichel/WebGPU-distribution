@@ -29,6 +29,9 @@ else (EMSCRIPTEN)
 		if (ARCH STREQUAL "AMD64")
 			set(ARCH "x86_64")
 		endif()
+		if (ARCH STREQUAL "arm64")
+			set(ARCH "aarch64")
+		endif()
 	endif()
 
 	# A pre-compiled target (IMPORTED) that is a dynamically
