@@ -63,7 +63,7 @@ if (NOT TARGET webgpu)
 		FetchContent_DeclareShallowGit(
 			webgpu-backend-wgpu
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        2886841e10f720640fd0a400e0177d2db2e4da81 # wgpu-v0.19.4.1 + fix
+			GIT_TAG        ac055bef9d8c37f28e7706e4bd32153cbc0c210f # wgpu-v0.19.4.1 + fix
 		)
 		FetchContent_MakeAvailable(webgpu-backend-wgpu)
 
@@ -72,7 +72,7 @@ if (NOT TARGET webgpu)
 		FetchContent_DeclareShallowGit(
 			webgpu-backend-wgpu-static
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        f2219d45d308d7907bbc6e5f5cd37034c3997687 # wgpu-static-v0.19.4.1 + fix
+			GIT_TAG        3612311d4df171027513a3ad5dcd8a77d93c447f # wgpu-static-v0.19.4.1 + fix
 		)
 		FetchContent_MakeAvailable(webgpu-backend-wgpu-static)
 
