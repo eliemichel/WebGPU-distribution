@@ -5,13 +5,16 @@
     <img alt="Learn WebGPU Logo" src="images/webgpu-dark.svg" width="200">
   </picture>
 
-  <a href="https://github.com/eliemichel/LearnWebGPU">LearnWebGPU</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/WebGPU-Cpp">WebGPU-C++</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/glfw3webgpu">glfw3webgpu</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/WebGPU-distribution">WebGPU-distribution</a>
+  <a href="https://github.com/eliemichel/LearnWebGPU">LearnWebGPU</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/WebGPU-Cpp">WebGPU-C++</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/WebGPU-distribution">WebGPU-distribution</a><br/>
+  <a href="https://github.com/eliemichel/glfw3webgpu">glfw3webgpu</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/sdl2webgpu">sdl2webgpu</a>
   
   <a href="https://discord.gg/2Tar4Kt564"><img src="https://img.shields.io/static/v1?label=Discord&message=Join%20us!&color=blue&logo=discord&logoColor=white" alt="Discord | Join us!"/></a>
 </div>
 
 WebGPU distribution
 ===================
+
+**Important Note** If you were using [`webgpu.cmake`](https://github.com/eliemichel/WebGPU-distribution/blob/main/webgpu.cmake) prior to November 5, 2023 **please update** it to prevent breaking changes. Each revision of this file now points to a specific version of the distribution submodules to make sure your project still builds even when the distributions gets updated.
 
 Overview
 --------
@@ -117,17 +120,17 @@ In theory we could use WebGPU backends as packaged by their developers. However 
 
 ### Shallow clone
 
-**Important.** When using this reprository as a submodule, you should advise your users to add `--shallow-submodules` to their `git clone` command so that they only download the branch you picked.
+**Important.** When using this repository as a submodule, you should advise your users to add `--shallow-submodules` to their `git clone` command so that they only download the branch you picked.
 
 I am not very happy with this, as it is likely that people forget it. I'm thinking of splitting this repository into multiple ones, namely one per option, but it is not ideal. In the meantime, a safe option is to just copy the content of this `main` branch into your repo.
 
 
 ### Future work
 
-**Single-plateform precompiled library.** I initially cared about providing a standalone folder that can be dropped in any project or shared with students and works on any desktop platform without the need for an Internet connection or anything (what the `wgpu` branch does).
+**Single-platform precompiled library.** I initially cared about providing a standalone folder that can be dropped in any project or shared with students and works on any desktop platform without the need for an Internet connection or anything (what the `wgpu` branch does).
 
 While I intend to maintain this possibility, since the *Flexibility* option already uses a FetchContent mechanism it could be used to download only the binaries needed for the current platform.
 
 **Static linking.** wgpu-native now also auto-builds static libraries, they are included as an alternative in the `wgpu-static` branch but this is highly untested (and I'm pretty sure it does not work for MSVC).
 
-**Precompiled Dawn binaries.** Is it worth it? Initial compilation takes time, but then it is okey. Could use [Zig](https://github.com/hexops/mach-gpu-dawn) for this.
+**Precompiled Dawn binaries.** Is it worth it? Initial compilation takes time, but then it is okay. Could use [Zig](https://github.com/hexops/mach-gpu-dawn) for this.
