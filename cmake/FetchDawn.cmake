@@ -32,14 +32,14 @@ include(FetchContent)
 FetchContent_Declare(
 	dawn
 	#GIT_REPOSITORY https://dawn.googlesource.com/dawn
-	#GIT_TAG        chromium/6512
+	#GIT_TAG        chromium/6536
 	#GIT_SHALLOW ON
 
 	# Manual download mode, even shallower than GIT_SHALLOW ON
 	DOWNLOAD_COMMAND
 		cd ${FETCHCONTENT_BASE_DIR}/dawn-src &&
 		git init &&
-		git fetch --depth=1 https://dawn.googlesource.com/dawn chromium/6512 &&
+		git fetch --depth=1 https://dawn.googlesource.com/dawn chromium/6536 &&
 		git reset --hard FETCH_HEAD
 
 	PATCH_COMMAND
@@ -168,6 +168,9 @@ set(AllDawnTargets
 	tint_lang_wgsl_writer_ir_to_program
 	tint_lang_wgsl_writer_raise
 	tint_lang_wgsl_writer_syntax_tree_printer
+    tint_lang_core_common
+    tint_lang_hlsl_writer_printer
+    tint_lang_hlsl_writer_raise
 	tint_utils_bytes
 	tint_utils_cli
 	tint_utils_command
