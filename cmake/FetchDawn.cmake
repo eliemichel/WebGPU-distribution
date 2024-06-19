@@ -87,8 +87,8 @@ if (NOT dawn_POPULATED)
 	set(TINT_BUILD_AS_OTHER_OS OFF)
 	set(TINT_BUILD_REMOTE_COMPILE OFF)
 
-	add_subdirectory(${dawn_SOURCE_DIR} ${dawn_BINARY_DIR})
-endif ()
+	add_subdirectory(${dawn_SOURCE_DIR} ${dawn_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
 
 set(AllDawnTargets
 	core_tables
