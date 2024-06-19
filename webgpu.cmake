@@ -81,7 +81,7 @@ if (NOT TARGET webgpu)
 		FetchContent_DeclareShallowGit(
 			webgpu-backend-dawn
 			GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-			GIT_TAG        dawn-6536
+			GIT_TAG        6949e3af36e03216a0f68c35cf8ec12dbee6629c # dawn-6536 + fix
 		)
 		FetchContent_MakeAvailable(webgpu-backend-dawn)
 
