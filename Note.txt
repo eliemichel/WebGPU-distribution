@@ -1,0 +1,8 @@
+*Need to add following into the FetchDawn.cmake file
+
+set(DAWN_USE_GLFW OFF)
+set(TINT_BUILD_CMD_TOOLS OFF)
+
+*And remove "EXCLUDE_FROM_ALL" from the following line
+
+add_subdirectory(${dawn_SOURCE_DIR} ${dawn_BINARY_DIR} EXCLUDE_FROM_ALL)
