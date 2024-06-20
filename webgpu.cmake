@@ -25,6 +25,7 @@
 include(FetchContent)
 
 set(WEBGPU_BACKEND "WGPU" CACHE STRING "Backend implementation of WebGPU. Possible values are EMSCRIPTEN, WGPU, WGPU_STATIC and DAWN (it does not matter when using emcmake)")
+set_property(CACHE WEBGPU_BACKEND PROPERTY STRINGS EMSCRIPTEN WGPU WGPU_STATIC DAWN )
 
 # FetchContent's GIT_SHALLOW option is buggy and does not actually do a shallow
 # clone. This macro takes care of it.
