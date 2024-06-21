@@ -1,5 +1,7 @@
+import os
 from conans import ConanFile, tools
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
+from conan.tools.files import replace_in_file
 
 class WebGPUDistributionConan(ConanFile):
     name = 'WebGPU'
@@ -32,6 +34,10 @@ class WebGPUDistributionConan(ConanFile):
 
     def source(self):
         self.run("git clone --depth=1 " + self.url + ".git --branch {} .".format(self.options.branch))
+        if (self.options.branch == "dawn"):
+            replace_in_file(self, os.path.join(self.source_folder, "cmake", "FetchDawn.cmake"), "EXCLUDE_FROM_ALL", "")
+            replace_in_file(self, os.path.join(self.source_folder, "cmake", "FetchDawn.cmake"), "set(DAWN_ENABLE_D3D11 OFF)", 
+                                            "set(DAWN_USE_GLFW OFF)\nset(TINT_BUILD_CMD_TOOLS OFF)\nset(DAWN_ENABLE_D3D11 OFF)")
 
     def configure(self):
         pass
@@ -55,11 +61,18 @@ class WebGPUDistributionConan(ConanFile):
         pass
 
     def package(self):
-        self.copy(pattern="_deps/dawn-build/gen/include/dawn/webgpu.h", dst="include/webgpu", keep_path=False)
         self.copy(pattern="include/webgpu/webgpu.hpp", dst="include/webgpu", keep_path=False)
-        self.copy(pattern="*libwebgpu_dawn.a", dst="lib", keep_path=False)
-        self.copy(pattern="*libwebgpu_dawn.dylib", dst="lib", keep_path=False)
+        if (self.options.branch == "dawn"):
+            self.copy(pattern="_deps/dawn-build/gen/include/dawn/webgpu.h", dst="include/webgpu", keep_path=False)
+            self.copy(pattern="*libwebgpu_dawn.a", dst="lib", keep_path=False)
+            self.copy(pattern="*libwebgpu_dawn.dylib", dst="lib", keep_path=False)
+            self.copy(pattern="*libdawn_native.dylib", dst="lib", keep_path=False)
+            self.copy(pattern="*libwebgpu_dawn.so", dst="lib", keep_path=False)
+            self.copy(pattern="*libdawn_native.so", dst="lib", keep_path=False)
 
     def package_info(self):
-        pass
+        self.cpp_info.libs = ["webgpu_dawn"]
+        if self.settings.os == "Macos":
+            self.cpp_info.frameworks = ["Metal", "MetalKit", "AppKit", "Foundation", "QuartzCore", "IOSurface"]
+
 
