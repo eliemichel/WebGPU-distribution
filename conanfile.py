@@ -26,7 +26,8 @@ class WebGPUDistributionConan(ConanFile):
     generators = 'VirtualBuildEnv'
 
     def requirements(self):
-        pass
+        if self.settings.os == 'Windows':
+            self.options.shared = False
 
     def build_requirements(self):
         self.tool_requires('pkgconf/1.7.4')
@@ -47,6 +48,8 @@ class WebGPUDistributionConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self, generator="Ninja")
+        if self.settings.os == 'Windows':
+            tc.variables["CMAKE_OBJECT_PATH_MAX"] = "512"
         tc.generate()
         deps = CMakeDeps(self)
         deps.generate()
@@ -55,7 +58,7 @@ class WebGPUDistributionConan(ConanFile):
         cmake = CMake(self)
         cmake.verbose = True
         cmake.configure()
-        cmake.build()
+        cmake.build() # To enable parallel when using clang : cmake.build(cli_args=['--parallel', '16'])
 
     def package_id(self):
         pass
@@ -64,11 +67,17 @@ class WebGPUDistributionConan(ConanFile):
         self.copy(pattern="include/webgpu/webgpu.hpp", dst="include/webgpu", keep_path=False)
         if (self.options.branch == "dawn"):
             self.copy(pattern="_deps/dawn-build/gen/include/dawn/webgpu.h", dst="include/webgpu", keep_path=False)
-            self.copy(pattern="*libwebgpu_dawn.a", dst="lib", keep_path=False)
-            self.copy(pattern="*libwebgpu_dawn.dylib", dst="lib", keep_path=False)
-            self.copy(pattern="*libdawn_native.dylib", dst="lib", keep_path=False)
-            self.copy(pattern="*libwebgpu_dawn.so", dst="lib", keep_path=False)
-            self.copy(pattern="*libdawn_native.so", dst="lib", keep_path=False)
+            if self.settings.os == 'Windows':
+                self.copy(pattern="*libwebgpu_dawn.lib", dst="lib", keep_path=False)
+                self.copy(pattern="*libdawn_native.lib", dst="lib", keep_path=False)
+                self.copy(pattern="*.lib", dst="lib", keep_path=False)
+            else:
+                self.copy(pattern="*libwebgpu_dawn.a", dst="lib", keep_path=False)
+                self.copy(pattern="*libwebgpu_dawn.dylib", dst="lib", keep_path=False)
+                self.copy(pattern="*libdawn_native.dylib", dst="lib", keep_path=False)
+                self.copy(pattern="*libwebgpu_dawn.so", dst="lib", keep_path=False)
+                self.copy(pattern="*libdawn_native.so", dst="lib", keep_path=False)
+                
 
     def package_info(self):
         self.cpp_info.libs = ["webgpu_dawn"]
