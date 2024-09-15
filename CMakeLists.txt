@@ -48,7 +48,7 @@ else (EMSCRIPTEN)
 
 	if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
-		set(WGPU_RUNTIME_LIB ${WGPU}/bin/windows-${ARCH}/wgpu_native.dll)
+		set(WGPU_RUNTIME_LIB ${WGPU}/bin/windows-${ARCH}-msvc/wgpu_native.dll)
 		set_target_properties(
 			webgpu
 			PROPERTIES
@@ -80,7 +80,7 @@ else (EMSCRIPTEN)
 
 	else()
 
-		message(FATAL_ERROR "Platform not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
+		message(FATAL_ERROR "Platform not supported by this release of WebGPU. You may consider manually downloading the appropriate release zip or building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
 
 	endif()
 
