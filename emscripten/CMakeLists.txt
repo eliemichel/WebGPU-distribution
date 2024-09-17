@@ -22,39 +22,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cmake_minimum_required(VERSION 3.0.0...3.24 FATAL_ERROR)
-project(webgpu VERSION 1.0.0)
+message(STATUS "Using emscripten backend for WebGPU")
 
-set(WEBGPU_BACKEND "WGPU" CACHE STRING "Backend implementation of WebGPU. Possible values are EMSCRIPTEN, WGPU and DAWN (it does not matter when using emcmake)")
-set_property(CACHE WEBGPU_BACKEND PROPERTY STRINGS EMSCRIPTEN WGPU DAWN)
+# When using emscripten, we do not download any WebGPU implementation
+# because emscripten will convert all calls to the WebGPU API into their
+# equivalent JavaScript counterpart, and the actual implementation is
+# provided by the client's Web browser (it is not shipped with our WASM
+# module).
 
-# NB: There are also backend-specific options in <backend>/CMakeLists.txt
+add_library(webgpu INTERFACE)
 
-if (TARGET webgpu)
-	message(STATUS "Target 'webgpu' already exists.")
-	return()
-endif()
+# Add include path to webgpu.hpp
+target_include_directories(webgpu INTERFACE
+	"${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
 
-# A couple of utility functions
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils.cmake")
+# This is used to advertise the flavor of WebGPU that this zip provides
+target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_EMSCRIPTEN)
 
-# Convert to uppercase, so that users can provide value with any case they like
-string(TOUPPER ${WEBGPU_BACKEND} WEBGPU_BACKEND_U)
+target_link_options(webgpu INTERFACE
+    -sUSE_WEBGPU # Handle WebGPU symbols when linking
+)
 
-if (EMSCRIPTEN OR WEBGPU_BACKEND_U STREQUAL "EMSCRIPTEN")
-
-	add_subdirectory(emscripten)
-
-elseif (WEBGPU_BACKEND_U STREQUAL "WGPU")
-
-	add_subdirectory(wgpu-native)
-
-elseif (WEBGPU_BACKEND_U STREQUAL "DAWN")
-
-	add_subdirectory(dawn)
-
-else()
-
-	message(FATAL_ERROR "Invalid value for WEBGPU_BACKEND: possible values are EMSCRIPTEN, WGPU, end DAWN, but '${WEBGPU_BACKEND_U}' was provided.")
-
-endif()
+# There is no dll/so/dylib to copy in this case
+function(target_copy_webgpu_binaries Target)
+endfunction()
