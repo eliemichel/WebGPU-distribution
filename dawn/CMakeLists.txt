@@ -101,7 +101,7 @@ find_package(Dawn CONFIG REQUIRED)
 add_library(webgpu INTERFACE)
 target_link_libraries(webgpu INTERFACE dawn::webgpu_dawn)
 # This is used to advertise the flavor of WebGPU that this zip provides
-target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_WGPU)
+target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_DAWN)
 # This add webgpu.hpp
 target_include_directories(webgpu INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include")
 
