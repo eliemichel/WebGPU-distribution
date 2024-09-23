@@ -33,7 +33,6 @@ jobs:
           msystem: ucrt64
           extra-cmake-args: -G "MSYS Makefiles"
           exe-extension: .exe
-          is-multiconfig: true
 
         - system: MacOS-ARM
           runner: macos-latest
@@ -44,6 +43,9 @@ jobs:
         exclude:
         - webgpu-backend: DAWN
           link-type: STATIC
+
+        - system: MacOS-x64
+          webgpu-backend: DAWN
 
     runs-on: ${{ matrix.runner }}
 
