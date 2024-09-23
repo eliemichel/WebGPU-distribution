@@ -7,3 +7,9 @@ add_executable(test)
 target_sources(test PRIVATE main.cpp)
 target_link_libraries(test PRIVATE webgpu)
 target_copy_webgpu_binaries(test)
+set_target_properties(test
+	PROPERTIES
+		CXX_STANDARD_REQUIRED ON
+		CXX_STANDARD 17
+		COMPILE_WARNING_AS_ERROR ON
+)
