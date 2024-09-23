@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14...3.24 FATAL_ERROR)
 project(Test-WebGPU-Distribution VERSION 1.0.0)
 
-add_subdirectory(../../webgpu webgpu)
+add_subdirectory(../.. webgpu)
 
 add_executable(test)
 target_sources(test PRIVATE main.cpp)
