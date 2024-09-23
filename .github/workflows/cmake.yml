@@ -23,6 +23,9 @@ jobs:
         - os: windows-latest
           exe-extension: .exe
           is-multiconfig: true
+        exclude:
+        - webgpu-backend: DAWN
+          link-type: STATIC
 
     runs-on: ${{ matrix.os }}
 
