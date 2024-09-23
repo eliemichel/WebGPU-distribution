@@ -12,9 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         system: [ Linux-x64, Windows-MSVC-x64, Windows-MSYS-x64, MacOS-x64, MacOS-ARM ]
-        build-type: [ Debug, Release ]
         webgpu-backend: [ DAWN, WGPU ]
         link-type: [ SHARED, STATIC ]
+        build-type: [ Debug, Release ]
 
         include:
         - system: Linux-x64
@@ -31,6 +31,7 @@ jobs:
         - system: Windows-MSYS-x64
           runner: windows-latest
           msystem: ucrt64
+          shell: msys2 {0}
           exe-extension: .exe
           is-multiconfig: true
 
@@ -47,7 +48,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install dependencies
       if: ${{ matrix.install-deps }}
@@ -58,8 +59,10 @@ jobs:
       uses: msys2/setup-msys2@v2
       with:
         msystem: ${{ matrix.msystem }}
+        pacboy: cmake:p
 
     - name: Configure CMake
+      shell: ${{ matrix.shell }}
       run: >
         cmake
         -S .github/example
