@@ -25,6 +25,7 @@
 include(FetchContent)
 
 set(WGPU_LINK_TYPE "SHARED" CACHE STRING "Whether the wgpu-native WebGPU implementation must be statically or dynamically linked. Possible values are STATIC and SHARED")
+set_property(CACHE WGPU_LINK_TYPE PROPERTY STRINGS SHARED STATIC)
 set(WGPU_VERSION "v22.1.0.5" CACHE STRING "Version of the wgpu-native WebGPU implementation to use. Must correspond to the tag name of an existing release on https://github.com/gfx-rs/wgpu-native/releases. Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions.")
 
 # Not using emscripten, so we download binaries. There are many different
@@ -114,13 +115,21 @@ endif()
 # This is used to advertise the flavor of WebGPU that this zip provides
 target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_WGPU)
 
+# This add webgpu.hpp
+target_include_directories(webgpu INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include")
+
+# TODO: There should be a wgpu-native-config.cmake file provided together with wgpu-native
 build_lib_filename(BINARY_FILENAME "wgpu_native" ${USE_SHARED_LIB})
-set(WGPU_RUNTIME_LIB "${ZIP_DIR}/lib/${BINARY_FILENAME}")
+set(WEBGPU_RUNTIME_LIB "${ZIP_DIR}/lib/${BINARY_FILENAME}")
 set_target_properties(
 	webgpu
 	PROPERTIES
-		IMPORTED_LOCATION "${WGPU_RUNTIME_LIB}"
-		INTERFACE_INCLUDE_DIRECTORIES "${ZIP_DIR}/include;${ZIP_DIR}/include/webgpu"  # see https://github.com/gfx-rs/wgpu-native/pull/424
+		IMPORTED_LOCATION "${WEBGPU_RUNTIME_LIB}"
+)
+
+target_include_directories(webgpu INTERFACE
+	"${ZIP_DIR}/include"
+	"${ZIP_DIR}/include/webgpu"  # see https://github.com/gfx-rs/wgpu-native/pull/424
 )
 
 if (USE_SHARED_LIB)
@@ -152,11 +161,11 @@ if (USE_SHARED_LIB)
 
 	endif()
 
-	message(STATUS "Using WebGPU runtime from '${WGPU_RUNTIME_LIB}'")
-	set(WGPU_RUNTIME_LIB ${WGPU_RUNTIME_LIB} CACHE INTERNAL "Path to the WebGPU library binary")
+	message(STATUS "Using WebGPU runtime from '${WEBGPU_RUNTIME_LIB}'")
+	set(WEBGPU_RUNTIME_LIB ${WEBGPU_RUNTIME_LIB} CACHE INTERNAL "Path to the WebGPU library binary")
 
 	# The application's binary must find the .dll/.so/.dylib at runtime,
-	# so we automatically copy it (it's called WGPU_RUNTIME_LIB in general)
+	# so we automatically copy it (it's called WEBGPU_RUNTIME_LIB in general)
 	# next to the binary.
 	# Also make sure that the binary's RPATH is set to find this shared library.
 	function(target_copy_webgpu_binaries Target)
@@ -164,31 +173,11 @@ if (USE_SHARED_LIB)
 			TARGET ${Target} POST_BUILD
 			COMMAND
 				${CMAKE_COMMAND} -E copy_if_different
-				${WGPU_RUNTIME_LIB}
+				${WEBGPU_RUNTIME_LIB}
 				$<TARGET_FILE_DIR:${Target}>
 			COMMENT
-				"Copying '${WGPU_RUNTIME_LIB}' to '$<TARGET_FILE_DIR:${Target}>'..."
+				"Copying '${WEBGPU_RUNTIME_LIB}' to '$<TARGET_FILE_DIR:${Target}>'..."
 		)
-
-		if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-			# Bug fix, there might be a cleaner way to do this but no INSTALL_RPATH
-			# or related target properties seem to be a solution.
-			set_target_properties(${Target} PROPERTIES INSTALL_RPATH "./")
-			if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
-				set(ARCH_DIR aarch64)
-			else()
-				set(ARCH_DIR ${CMAKE_SYSTEM_PROCESSOR})
-			endif()
-			add_custom_command(
-				TARGET ${Target} POST_BUILD
-				COMMAND
-					${CMAKE_INSTALL_NAME_TOOL} "-change"
-					"/Users/runner/work/wgpu-native/wgpu-native/target/${ARCH_DIR}-apple-darwin/release/deps/libwgpu_native.dylib"
-					"@executable_path/libwgpu_native.dylib"
-					"$<TARGET_FILE:${Target}>"
-				VERBATIM
-			)
-		endif()
 	endfunction()
 
 else (USE_SHARED_LIB)

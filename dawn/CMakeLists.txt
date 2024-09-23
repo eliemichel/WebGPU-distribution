@@ -24,8 +24,10 @@
 
 include(FetchContent)
 
-set(DAWN_LINK_TYPE "SHARED" CACHE STRING "Whether the wgpu-native WebGPU implementation must be statically or dynamically linked. Possible values are STATIC and SHARED")
-set(DAWN_VERSION "6719" CACHE STRING "Version of the Dawn release to use. Must correspond to the number after 'chromium/' in the tag name of an existing release on https://github.com/eliemichel/dawn-prebuilt/releases. Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions.")
+set(DAWN_LINK_TYPE "SHARED" CACHE STRING "Whether the wgpu-native WebGPU implementation must be statically or dynamically linked. Possible values are STATIC and SHARED in theory, though only SHARED is really supported upstream for now")
+set_property(CACHE DAWN_LINK_TYPE PROPERTY STRINGS SHARED STATIC)
+set(DAWN_VERSION "6720.1" CACHE STRING "Version of the Dawn release to use. Must correspond to the number after 'chromium/' in the tag name of an existing release on https://github.com/eliemichel/dawn-prebuilt/releases. Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions.")
+set(DAWN_MIRROR "https://github.com/eliemichel/dawn-prebuilt" CACHE STRING "This is ultimately supposed to be https://github.com/google/dawn, where official binaries will be auto-released, but in the meantime we use a different mirror.")
 
 # Not using emscripten, so we download binaries. There are many different
 # combinations of OS, CPU architecture and compiler (the later is only
@@ -39,6 +41,7 @@ if (DAWN_LINK_TYPE STREQUAL "SHARED")
 	set(USE_SHARED_LIB TRUE)
 elseif (DAWN_LINK_TYPE STREQUAL "STATIC")
 	set(USE_SHARED_LIB FALSE)
+	message(FATAL_ERROR "Link type '${DAWN_LINK_TYPE}' is not supported yet in Dawn releases.")
 else()
 	message(FATAL_ERROR "Link type '${DAWN_LINK_TYPE}' is not valid. Possible values for DAWN_LINK_TYPE are SHARED and STATIC.")
 endif()
@@ -59,170 +62,64 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
 else()
 
-	message(FATAL_ERROR "Platform system '${CMAKE_SYSTEM_NAME}' not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
+	message(FATAL_ERROR "Platform system '${CMAKE_SYSTEM_NAME}' not supported by this release of WebGPU. You may consider building it yourself from its source (see https://dawn.googlesource.com/dawn)")
 
 endif()
 
+# NB: No arch is specified in the URL for now in Dawn releases (only 1 arch is supported per OS)
 set(URL_ARCH)
-if (ARCH STREQUAL "x86_64")
-	set(URL_ARCH "x86_64")
-elseif (ARCH STREQUAL "aarch64")
-	set(URL_ARCH "aarch64")
-elseif (ARCH STREQUAL "i686" AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
-	set(URL_ARCH "i686")
+if (ARCH STREQUAL "x86_64" AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
+	set(URL_ARCH "")
+elseif (ARCH STREQUAL "x86_64" AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	set(URL_ARCH "")
+elseif (ARCH STREQUAL "aarch64" AND CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+	set(URL_ARCH "")
 else()
-	message(FATAL_ERROR "Platform architecture '${ARCH}' not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
+	message(FATAL_ERROR "Platform architecture '${ARCH}' not supported for system '${CMAKE_SYSTEM_NAME}' by this release of WebGPU. You may consider building it yourself from its source (see https://dawn.googlesource.com/dawn)")
 endif()
-
-message(FATAL_ERROR "Beyond this line, this file is Work in Progress, limited by the fact that http://github.com/google/dawn's CI actions are failing.")
 
 # We only fetch release builds (NB: this may cause issue when using static
 # linking, but not with dynamic)
-set(URL_CONFIG release)
-
-# Finally build the URL. The URL_NAME is also used as FetchContent
-# identifier (BTW it must be lowercase).
-if (URL_COMPILER)
-	set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_COMPILER}-${URL_CONFIG}")
-else()
-	set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_CONFIG}")
-endif()
-set(URL "https://github.com/gfx-rs/wgpu-native/releases/download/${DAWN_VERSION}/${URL_NAME}.zip")
+set(URL_CONFIG Release)
+set(URL_NAME "Dawn-${DAWN_VERSION}-${URL_OS}${URL_ARCH}-${URL_CONFIG}")
+string(TOLOWER "${URL_NAME}" FC_NAME)
+set(URL "${DAWN_MIRROR}/releases/download/chromium%2F${DAWN_VERSION}/${URL_NAME}.zip")
 
 # Declare FetchContent, then make available
-FetchContent_Declare(${URL_NAME}
+FetchContent_Declare(${FC_NAME}
 	URL ${URL}
 )
 # TODO: Display the "Fetching" message only when actually downloading
 message(STATUS "Fetching WebGPU implementation from '${URL}'")
-FetchContent_MakeAvailable(${URL_NAME})
-set(ZIP_DIR "${${URL_NAME}_SOURCE_DIR}")
+FetchContent_MakeAvailable(${FC_NAME})
 
-# A pre-compiled target (IMPORTED) that is a dynamically linked library
-# (SHARED, meaning .dll, .so or .dylib) or statically linked (.a or .lib).
-if (USE_SHARED_LIB)
-	add_library(webgpu SHARED IMPORTED GLOBAL)
-else()
-	add_library(webgpu STATIC IMPORTED GLOBAL)
-endif()
+set(Dawn_ROOT "${${FC_NAME}_SOURCE_DIR}")
+set(Dawn_DIR "${${FC_NAME}_SOURCE_DIR}/lib64/cmake/Dawn")
+find_package(Dawn CONFIG REQUIRED)
 
+# Unify target name with other backends and provide webgpu.hpp
+add_library(webgpu INTERFACE)
+target_link_libraries(webgpu INTERFACE dawn::webgpu_dawn)
 # This is used to advertise the flavor of WebGPU that this zip provides
 target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_WGPU)
+# This add webgpu.hpp
+target_include_directories(webgpu INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include")
 
-build_lib_filename(BINARY_FILENAME "dawn" ${USE_SHARED_LIB})
-set(WGPU_RUNTIME_LIB "${ZIP_DIR}/lib/${BINARY_FILENAME}")
-set_target_properties(
-	webgpu
-	PROPERTIES
-		IMPORTED_LOCATION "${WGPU_RUNTIME_LIB}"
-		INTERFACE_INCLUDE_DIRECTORIES "${ZIP_DIR}/include;${ZIP_DIR}/include/webgpu"  # see https://github.com/gfx-rs/wgpu-native/pull/424
-)
+# Get path to .dll/.so/.dylib, for target_copy_webgpu_binaries
+get_target_property(WEBGPU_RUNTIME_LIB dawn::webgpu_dawn IMPORTED_LOCATION_RELEASE)
+message(STATUS "Using WebGPU runtime from '${WEBGPU_RUNTIME_LIB}'")
+set(WEBGPU_RUNTIME_LIB ${WEBGPU_RUNTIME_LIB} CACHE INTERNAL "Path to the WebGPU library binary")
 
-if (USE_SHARED_LIB)
-
-	if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-
-		if (MSVC)
-			set(STATIC_LIB_EXT "lib")
-			set(STATIC_LIB_PREFIX "")
-		else()
-			set(STATIC_LIB_EXT "a")
-			set(STATIC_LIB_PREFIX "lib")
-		endif()
-
-		set(WGPU_IMPLIB "${ZIP_DIR}/lib/${STATIC_LIB_PREFIX}${BINARY_FILENAME}.${STATIC_LIB_EXT}")
-		set_target_properties(
-			webgpu
-			PROPERTIES
-				IMPORTED_IMPLIB "${WGPU_IMPLIB}"
-		)
-
-	elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-
-		set_target_properties(
-			webgpu
-			PROPERTIES
-				IMPORTED_NO_SONAME TRUE
-		)
-
-	endif()
-
-	message(STATUS "Using WebGPU runtime from '${WGPU_RUNTIME_LIB}'")
-	set(WGPU_RUNTIME_LIB ${WGPU_RUNTIME_LIB} CACHE INTERNAL "Path to the WebGPU library binary")
-
-	# The application's binary must find the .dll/.so/.dylib at runtime,
-	# so we automatically copy it (it's called WGPU_RUNTIME_LIB in general)
-	# next to the binary.
-	# Also make sure that the binary's RPATH is set to find this shared library.
-	function(target_copy_webgpu_binaries Target)
-		add_custom_command(
-			TARGET ${Target} POST_BUILD
-			COMMAND
-				${CMAKE_COMMAND} -E copy_if_different
-				${WGPU_RUNTIME_LIB}
-				$<TARGET_FILE_DIR:${Target}>
-			COMMENT
-				"Copying '${WGPU_RUNTIME_LIB}' to '$<TARGET_FILE_DIR:${Target}>'..."
-		)
-
-		if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-			# Bug fix, there might be a cleaner way to do this but no INSTALL_RPATH
-			# or related target properties seem to be a solution.
-			set_target_properties(${Target} PROPERTIES INSTALL_RPATH "./")
-			if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
-				set(ARCH_DIR aarch64)
-			else()
-				set(ARCH_DIR ${CMAKE_SYSTEM_PROCESSOR})
-			endif()
-			add_custom_command(
-				TARGET ${Target} POST_BUILD
-				COMMAND
-					${CMAKE_INSTALL_NAME_TOOL} "-change"
-					"/Users/runner/work/wgpu-native/wgpu-native/target/${ARCH_DIR}-apple-darwin/release/deps/libwgpu_native.dylib"
-					"@executable_path/libwgpu_native.dylib"
-					"$<TARGET_FILE:${Target}>"
-				VERBATIM
-			)
-		endif()
-	endfunction()
-
-else (USE_SHARED_LIB)
-
-	if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-
-		target_link_libraries(
-			webgpu
-			INTERFACE
-				d3dcompiler.lib
-				Ws2_32.lib
-				Userenv.lib
-				ntdll.lib
-				Bcrypt.lib
-				Opengl32.lib
-		)
-
-	elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-
-		target_link_libraries(
-			webgpu
-			INTERFACE
-				dl
-				pthread
-		)
-
-	elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-
-		target_link_libraries(
-			webgpu
-			INTERFACE
-				"-framework Metal"
-				"-framework QuartzCore"
-				"-framework MetalKit"
-		)
-
-	endif()
-
-	function(target_copy_webgpu_binaries Target)
-	endfunction()
-
-endif (USE_SHARED_LIB)
+# The application's binary must find the .dll/.so/.dylib at runtime,
+# so we automatically copy it next to the binary.
+function(target_copy_webgpu_binaries Target)
+	add_custom_command(
+		TARGET ${Target} POST_BUILD
+		COMMAND
+			${CMAKE_COMMAND} -E copy_if_different
+			${WEBGPU_RUNTIME_LIB}
+			$<TARGET_FILE_DIR:${Target}>
+		COMMENT
+			"Copying '${WEBGPU_RUNTIME_LIB}' to '$<TARGET_FILE_DIR:${Target}>'..."
+	)
+endfunction()
