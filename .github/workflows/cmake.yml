@@ -31,7 +31,7 @@ jobs:
         - system: Windows-MSYS-x64
           runner: windows-latest
           msystem: ucrt64
-          shell: msys2 {0}
+          extra-cmake-args: -G "MSYS Makefiles"
           exe-extension: .exe
           is-multiconfig: true
 
@@ -62,7 +62,6 @@ jobs:
         pacboy: cmake:p
 
     - name: Configure CMake
-      shell: ${{ matrix.shell }}
       run: >
         cmake
         -S .github/example
@@ -70,6 +69,7 @@ jobs:
         -DWEBGPU_BACKEND=${{ matrix.webgpu-backend }}
         -D${{ matrix.webgpu-backend }}_LINK_TYPE=${{ matrix.link-type }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+        ${{ matrix.extra-cmake-args }}
 
     - name: Build
       run: >
