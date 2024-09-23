@@ -1,0 +1,57 @@
+name: CMake
+
+# Controls when the workflow will run
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        build-type: [ Debug, Release ]
+        webgpu-backend: [ DAWN, WGPU ]
+        link-type: [ SHARED, STATIC ]
+        include:
+        - os: ubuntu-latest
+          install-deps: |
+            sudo apt-get update -y
+            sudo apt-get install -y xorg-dev
+        - os: windows-latest
+          exe-extension: .exe
+          is-multiconfig: true
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      if: ${{ matrix.install-deps }}
+      run: ${{ matrix.install-deps }}
+
+    - name: Configure CMake
+      run: >
+        cmake
+        -S .github/example
+        -B build
+        -DWEBGPU_BACKEND=${{ matrix.webgpu-backend }}
+        -D${{ matrix.webgpu-backend }}_LINK_TYPE=${{ matrix.link-type }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+
+    - name: Build
+      run: >
+        cmake
+        --build build
+        --config ${{ matrix.build-type }}
+
+    - name: Run (Multiconfig)
+      if: ${{ matrix.is-multiconfig }}
+      run: build/${{ matrix.build-type }}/test${{ matrix.exe-extension }}
+
+    - name: Run (Monoconfig)
+      if: ${{ !matrix.is-multiconfig }}
+      run: build/test${{ matrix.exe-extension }}
