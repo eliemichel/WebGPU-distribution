@@ -44,9 +44,6 @@ jobs:
         - webgpu-backend: DAWN
           link-type: STATIC
 
-        - system: MacOS-x64
-          webgpu-backend: DAWN
-
     runs-on: ${{ matrix.runner }}
 
     steps:
