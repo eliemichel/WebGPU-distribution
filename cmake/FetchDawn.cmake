@@ -43,7 +43,7 @@ FetchContent_Declare(
 		git reset --hard FETCH_HEAD
 
 	PATCH_COMMAND
-		git apply "${CMAKE_CURRENT_LIST_DIR}/../patch/dawn.patch"
+		git apply --ignore-space-change --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../patch/dawn.patch"
 )
 
 FetchContent_GetProperties(dawn)
