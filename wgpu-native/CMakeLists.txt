@@ -202,6 +202,7 @@ else (USE_SHARED_LIB)
 			INTERFACE
 				dl
 				pthread
+				m
 		)
 
 	elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
