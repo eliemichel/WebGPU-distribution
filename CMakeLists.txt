@@ -29,7 +29,7 @@ else (EMSCRIPTEN)
 	target_link_libraries(webgpu INTERFACE webgpu_dawn)
 	target_include_directories(webgpu INTERFACE
 		"${CMAKE_CURRENT_SOURCE_DIR}/include"
-		"${CMAKE_BINARY_DIR}/_deps/dawn-src/include"
+		"${dawn_SOURCE_DIR}/include"
 	)
 
 	# This is used to advertise the flavor of WebGPU that this zip provides
