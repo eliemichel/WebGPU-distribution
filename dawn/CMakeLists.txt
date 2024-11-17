@@ -26,7 +26,7 @@ include(FetchContent)
 
 set(DAWN_LINK_TYPE "SHARED" CACHE STRING "Whether the wgpu-native WebGPU implementation must be statically or dynamically linked. Possible values are STATIC and SHARED in theory, though only SHARED is really supported upstream for now")
 set_property(CACHE DAWN_LINK_TYPE PROPERTY STRINGS SHARED STATIC)
-set(DAWN_VERSION "6792" CACHE STRING "Version of the Dawn release to use. Must correspond to the number after 'chromium/' in the tag name of an existing release on https://github.com/eliemichel/dawn-prebuilt/releases. Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions than the default.")
+set(DAWN_VERSION "6838" CACHE STRING "Version of the Dawn release to use. Must correspond to the number after 'chromium/' in the tag name of an existing release on https://github.com/eliemichel/dawn-prebuilt/releases. Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions than the default.")
 set(DAWN_MIRROR "https://github.com/eliemichel/dawn-prebuilt" CACHE STRING "This is ultimately supposed to be https://github.com/google/dawn, where official binaries will be auto-released, but in the meantime we use a different mirror.")
 
 # Not using emscripten, so we download binaries. There are many different
