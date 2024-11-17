@@ -26,7 +26,8 @@ include(FetchContent)
 
 set(WGPU_LINK_TYPE "SHARED" CACHE STRING "Whether the wgpu-native WebGPU implementation must be statically or dynamically linked. Possible values are STATIC and SHARED")
 set_property(CACHE WGPU_LINK_TYPE PROPERTY STRINGS SHARED STATIC)
-set(WGPU_VERSION "v22.1.0.5" CACHE STRING "Version of the wgpu-native WebGPU implementation to use. Must correspond to the tag name of an existing release on https://github.com/gfx-rs/wgpu-native/releases. Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions.")
+set(WGPU_VERSION "v23.0.0-gamma" CACHE STRING "Version of the wgpu-native WebGPU implementation to use. Must correspond to the tag name of an existing release on https://github.com/gfx-rs/wgpu-native/releases. Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions.")
+set(WGPU_MIRROR "https://github.com/eliemichel/wgpu-native" CACHE STRING "This is ultimately supposed to be https://github.com/gfx-rs/wgpu-native, where official binaries will be auto-released, but in the meantime we use a different mirror.")
 
 # Not using emscripten, so we download binaries. There are many different
 # combinations of OS, CPU architecture and compiler (the later is only
@@ -93,7 +94,7 @@ if (URL_COMPILER)
 else()
 	set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_CONFIG}")
 endif()
-set(URL "https://github.com/gfx-rs/wgpu-native/releases/download/${WGPU_VERSION}/${URL_NAME}.zip")
+set(URL "${WGPU_MIRROR}/releases/download/${WGPU_VERSION}/${URL_NAME}.zip")
 
 # Declare FetchContent, then make available
 FetchContent_Declare(${URL_NAME}
