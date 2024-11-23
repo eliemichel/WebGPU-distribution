@@ -194,6 +194,8 @@ else (USE_SHARED_LIB)
 				ntdll.lib
 				Bcrypt.lib
 				Opengl32.lib
+				Propsys.lib
+				RuntimeObject.lib
 		)
 
 	elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
