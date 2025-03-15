@@ -31,6 +31,7 @@ if (TARGET dawn_native)
 endif()
 
 include(FetchContent)
+find_package(Python3 REQUIRED)
 
 FetchContent_Declare(
 	dawn
@@ -46,7 +47,9 @@ FetchContent_Declare(
 		git reset --hard FETCH_HEAD
 
 	PATCH_COMMAND
-		git apply --ignore-space-change --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/patch/dawn.patch"
+		cmake
+		"-DPATCH_FILE=${CMAKE_CURRENT_LIST_DIR}/patch/dawn.patch"
+		-P "${PROJECT_SOURCE_DIR}/cmake/apply_patch_idempotent.cmake"
 )
 
 FetchContent_GetProperties(dawn)
@@ -187,6 +190,8 @@ endforeach()
 #################################################
 # Create the 'webgpu' target that exposes the same interface as other backends:
 
+# Unify target name with other backends and provide webgpu.hpp
+add_library(webgpu INTERFACE)
 target_link_libraries(webgpu INTERFACE webgpu_dawn)
 target_include_directories(webgpu INTERFACE
 	"${CMAKE_CURRENT_SOURCE_DIR}/include"
