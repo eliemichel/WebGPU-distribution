@@ -2,7 +2,7 @@
 #   https://eliemichel.github.io/LearnWebGPU
 # 
 # MIT License
-# Copyright (c) 2022-2024 Elie Michel and the wgpu-native authors
+# Copyright (c) 2022-2025 Elie Michel and the wgpu-native authors
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ cmake_minimum_required(VERSION 3.0.0...3.24 FATAL_ERROR)
 project(webgpu VERSION 1.0.0)
 
 set(WEBGPU_BACKEND "WGPU" CACHE STRING "Backend implementation of WebGPU. Possible values are EMSCRIPTEN, WGPU and DAWN (it does not matter when using emcmake)")
+option(WEBGPU_BUILD_FROM_SOURCE "When ON, fetch the source code of the backend and build it. When OFF, fetch a precompiled version of the backend." OFF)
 set_property(CACHE WEBGPU_BACKEND PROPERTY STRINGS EMSCRIPTEN WGPU DAWN)
 
 # NB: There are also backend-specific options in <backend>/CMakeLists.txt
