@@ -24,26 +24,21 @@
 
 include(FetchContent)
 
-set(DAWN_LINK_TYPE "SHARED" CACHE STRING "Whether the wgpu-native WebGPU implementation must be statically or dynamically linked. Possible values are STATIC and SHARED in theory, though only SHARED is really supported upstream for now")
-set_property(CACHE DAWN_LINK_TYPE PROPERTY STRINGS SHARED STATIC)
-set(DAWN_VERSION "7069" CACHE STRING "Version of the Dawn release to use. Must correspond to the number after 'chromium/' in the tag name of an existing release on https://github.com/eliemichel/dawn-prebuilt/releases. Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions than the default.")
-set(DAWN_MIRROR "https://github.com/eliemichel/dawn-prebuilt" CACHE STRING "This is ultimately supposed to be https://github.com/google/dawn, where official binaries will be auto-released, but in the meantime we use a different mirror.")
-
 # Not using emscripten, so we download binaries. There are many different
 # combinations of OS, CPU architecture and compiler (the later is only
 # relevant when using static linking), so here are a lot of boring "if".
 
 detect_system_architecture()
 
-# Check 'DAWN_LINK_TYPE' argument
+# Check 'WEBGPU_LINK_TYPE' argument
 set(USE_SHARED_LIB)
-if (DAWN_LINK_TYPE STREQUAL "SHARED")
+if (WEBGPU_LINK_TYPE STREQUAL "SHARED")
 	set(USE_SHARED_LIB TRUE)
-elseif (DAWN_LINK_TYPE STREQUAL "STATIC")
+elseif (WEBGPU_LINK_TYPE STREQUAL "STATIC")
 	set(USE_SHARED_LIB FALSE)
-	message(FATAL_ERROR "Link type '${DAWN_LINK_TYPE}' is not supported yet in Dawn releases.")
+	message(FATAL_ERROR "Link type '${WEBGPU_LINK_TYPE}' is not supported yet in Dawn releases.")
 else()
-	message(FATAL_ERROR "Link type '${DAWN_LINK_TYPE}' is not valid. Possible values for DAWN_LINK_TYPE are SHARED and STATIC.")
+	message(FATAL_ERROR "Link type '${WEBGPU_LINK_TYPE}' is not valid. Possible values for WEBGPU_LINK_TYPE are SHARED and STATIC.")
 endif()
 
 # Build URL to fetch
@@ -84,7 +79,7 @@ endif()
 set(URL_CONFIG Release)
 set(URL_NAME "Dawn-${DAWN_VERSION}-${URL_OS}-${URL_ARCH}-${URL_CONFIG}")
 string(TOLOWER "${URL_NAME}" FC_NAME)
-set(URL "${DAWN_MIRROR}/releases/download/chromium%2F${DAWN_VERSION}/${URL_NAME}.zip")
+set(URL "${DAWN_BINARY_MIRROR}/releases/download/chromium%2F${DAWN_VERSION}/${URL_NAME}.zip")
 
 # Declare FetchContent, then make available
 FetchContent_Declare(${FC_NAME}

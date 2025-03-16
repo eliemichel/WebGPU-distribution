@@ -6,7 +6,7 @@
   </picture>
 
   <a href="https://github.com/eliemichel/LearnWebGPU">LearnWebGPU</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/WebGPU-Cpp">WebGPU-C++</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/WebGPU-distribution">WebGPU-distribution</a><br/>
-  <a href="https://github.com/eliemichel/glfw3webgpu">glfw3webgpu</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/sdl2webgpu">sdl2webgpu</a>
+  <a href="https://github.com/eliemichel/glfw3webgpu">glfw3webgpu</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/sdl2webgpu">sdl2webgpu</a> &nbsp;|&nbsp; <a href="https://github.com/eliemichel/sdl3webgpu">sdl3webgpu</a>
   
   <a href="https://discord.gg/2Tar4Kt564"><img src="https://img.shields.io/static/v1?label=Discord&message=Join%20us!&color=blue&logo=discord&logoColor=white" alt="Discord | Join us!"/></a>
 </div>
@@ -14,123 +14,187 @@
 WebGPU distribution
 ===================
 
-**Important Note** If you were using [`webgpu.cmake`](https://github.com/eliemichel/WebGPU-distribution/blob/main/webgpu.cmake) prior to November 5, 2023 **please update** it to prevent breaking changes. Each revision of this file now points to a specific version of the distribution submodules to make sure your project still builds even when the distributions gets updated.
+*A unified setup to use any implementation of WebGPU in CMake projects targetting either native or web platforms.*
+
+> [!IMPORTANT]
+> You should **use an explicit tag name or commit hash** when using this repository as a **submodule** or with CMake's **FetchContent**. Do **not** point directly to the tip of a branch (be it `main` or another), so that your build does not risk breaking whenever this distribution gets updated.
+
+Outline
+-------
+
+- [Overview](#overview)
+- [Usage](#usage)
+  * [Integration](#integration)
+  * [CMake target](#cmake-target)
+  * [Options](#options)
+    + [Choice of implementation](#choice-of-implementation)
+    + [Building from source](building-from-source)
+    + [Link type](link-type)
+    + [Implementation version](#implementation-version)
 
 Overview
 --------
 
-The standard [WebGPU](https://www.w3.org/TR/webgpu) graphics API has multiple implementations, mostly [wgpu-native](https://github.com/gfx-rs/wgpu-native) (Firefox) and [Dawn](https://dawn.googlesource.com/dawn) (Chrome).
+The standard [WebGPU](https://www.w3.org/TR/webgpu) graphics API defines a [native C interface](https://github.com/webgpu-native/webgpu-headers) and has multiple cross-platform implementations, mostly [wgpu-native](https://github.com/gfx-rs/wgpu-native) (Firefox) and [Dawn](https://dawn.googlesource.com/dawn) (Chrome).
 
-This repository provides **distributions** of these implementations that are:
+This repository provides a **distribution** of these implementations that is:
 
- - **Easy to integrate.** These are standard [CMake](https://cmake.org) projects, that can be included either with a simple `add_subdirectory` (potentially using git submodules) or using [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html). No esoteric build tool is needed.
+ - **Easy to integrate.** This is a standard [CMake](https://cmake.org) project, that can be included either with a simple `add_subdirectory` (potentially using git submodules) or using [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html). No esoteric build tool is needed.
 
- - **Interchangeable.** Switching from one backend to another one does not require any change to the build system. Just replace your `webgpu` directory by a different distribution. A preprocessor variable `WEBGPU_BACKEND_WGPU` or `WEBGPU_BACKEND_DAWN` is defined to handle discrepancies in the source code.
+ - **Interchangeable.** Switching from one backend to another one does not require any change to the build system. A preprocessor variable `WEBGPU_BACKEND_WGPU` or `WEBGPU_BACKEND_DAWN` is defined to handle discrepancies in the source code (if any).
 
  - **emscripten-ready** When calling `emcmake`, these distributions switch to emscripten's WebGPU header (which is mapped to JavaScript WebGPU API).
+
+ - **Built from source** or **precompiled** depending on the value of `WEBGPU_BUILD_FROM_SOURCE` specified when invoking `cmake`.
 
 As a bonus, they include a [WebGPU-C++](https://github.com/eliemichel/WebGPU-Cpp) header consistent with the backend capabilities to ease C++ development of WebGPU-based applications.
 
 Usage
 -----
 
-Different options for using this repository are detailed bellow. The only difference is the `<branch_name>` to use when getting a distribution, either by downloading the source from:
+### Integration
 
-```
-https://github.com/eliemichel/WebGPU-distribution/archive/refs/heads/<branch_name>.zip
-```
-
-and including it with `add_subdirectory(webgpu)`, or by using fetch content:
+The easiest way to integrate this distribution is to **download it as zip**, then include it to your `CMakeLists.txt` using [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html).
 
 ```CMake
-FetchContent_Declare(
-  webgpu
-  GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
-  GIT_TAG        <branch_name>
-)
-FetchContent_MakeAvailable(webgpu)
+# 1. Download https://github.com/eliemichel/WebGPU-distribution/archive/refs/heads/main-next.zip
+# 2. Unzip `main-next.zip` and rename the unzipped directory 'webgpu'.
+# 3. Make sure it directly contains the file from this repository (and not an extra nested directory).
+# 4. In your root CMakeLists.txt, add the following line:
+add_subdirectory(webgpu) # 'webgpu' is the name of the directory
 ```
 
-This creates a `webgpu` CMake target that you can link against.
+> [!NOTE]
+> This repository (downloaded as zip) is rather **lightweight** since it only contains a couple of CMake files to take care of fetching the actual source code or precompiled binaries of WebGPU (depending on the options) at configuration time (i.e., when calling `cmake`).
 
-**NB** In order to ensure that dynamically linked backend are copied next to the generated application, call `target_copy_webgpu_binaries(TargetName)` at the end of your CMakeLists for each target `TargetName` that links against `webgpu`.
+> [!CAUTION]
+> Be careful **when cloning** this repository though: it may feel heavy because some legacy branches contain binaries. **Prefer using [shallow cloning](https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/)**.
 
-### Option A: Flexibility
+### CMake target
 
-**Branch:** `main` (recommended)
+Once `add_subdirectory(webgpu)` has been called in your `CMakeLists.txt`, a CMake [*target*](https://cmake.org/cmake/help/book/mastering-cmake/chapter/Key%20Concepts.html#targets) called `webgpu` is defined. This is a regular CMake target, that can be used as follows:
 
-The main branch enables one to chose any backend when configuring the project by setting the `WEBGPU_BACKEND` CMake cache variable. It is even possible to maintain multiple builds that use different backends:
+```CMake
+# Create your target (executable or library)
+add_executable(MyExecutable)
+
+# Indicate that your target depends on WebGPU
+target_link_libraries(MyExecutable PRIVATE webgpu)
+
+# (Then add sources and other dependencies)
+```
+
+When the WebGPU implementation is built (or fetched) as a **shared library** (i.e., a `.so` on linux, a `.dll` on Windows or a `.dylib` on macOS), your program may complain at runtime that it does not find the library. To avoid this issue, we provide a cmake function `target_copy_webgpu_binaries` that should be invoked for all executable target that links against `webgpu`:
+
+```CMake
+# Make sure webgpu so/dll/dylib file is copied next to your executable
+# to ease development and distribution:
+target_copy_webgpu_binaries(MyExecutable)
+```
+
+> [!NOTE]
+> This function `target_copy_webgpu_binaries` is always defined, even if the options are set to link as a static library. In such a case the function does nothing, but should be used anyways in case one choses to switch to a different backend.
+
+### Options
+
+CMake options and cache variables are defined to enable picking a specific version of the backend. You may leave them to their default values if you do not care about the details.
+
+As a reminder, CMake options can be specified on the command line when invoking CMake:
 
 ```bash
-# Build using wgpu-native backend
-cmake -B build-wgpu -DWEBGPU_BACKEND=WGPU
+# Call CMake with the value 'MY_VALUE' assigned to the variable 'MY_OPTION'
+cmake -B build -DMY_OPTION=MY_VALUE
+```
+
+For instance, you can configure multiple builds of your project, using different setups:
+
+```bash
+# Build using a precompiled wgpu-native backend
+cmake -B build-wgpu -DWEBGPU_BACKEND=WGPU -DWEBGPU_BUILD_FROM_SOURCE=OFF
 cmake --build build-wgpu
 
-# Build using Dawn backend
-cmake -B build-dawn -DWEBGPU_BACKEND=DAWN
+# Build using a Dawn backend built from source
+cmake -B build-dawn -DWEBGPU_BACKEND=DAWN -DWEBGPU_BUILD_FROM_SOURCE=ON
 cmake --build build-dawn
 
-# Build using emscripten
+# Build using emscripten (no need for a specific backend)
 emcmake cmake -B build-emscripten
 cmake --build build-emscripten
 ```
 
-Other branches enable only one of these solutions. Use them only if you want to target a specific backend.
+> [!TIP]
+> You may also **override the default value** of these options, either by directly modifying their declaration (in [`CMakeLists.txt`](CMakeLists.txt), [`dawn/FetchDawnPrecompiled.cmake`](dawn/FetchDawnPrecompiled.cmake), [`dawn/FetchDawnSource.cmake`](dawn/FetchDawnSource.cmake), [`wgpu-native/FetchWgpuNativePrecompiled.cmake`](wgpu-native/FetchWgpuNativePrecompiled.cmake), etc.) or by copying their declaration in your own `CMakeLists.txt` **before** calling `add_subdirectory(webgpu)`.
 
-An alternate way to include this option is to copy the `webgpu.cmake` file in your project and call `include(webgpu.cmake)`. You may then adapt the `GIT_TAG` to freeze the version of each backend (by specifying an exact commit hash).
+#### ☑️ Choice of implementation <a name="choice-of-implementation"></a>
 
-### Option B: Speed
+The first thing to decide on is the value of `WEBGPU_BACKEND`, which can be:
 
-**Branch:** `wgpu`
+- `WGPU` to use [wgpu-native](https://github.com/gfx-rs/wgpu-native), that is based on the Rust library [`wgpu`](https://github.com/gfx-rs/wgpu), which not only fuels Firefox but also a large portion of the Rust graphics application.
+- `DAWN` to use [Dawn](https://dawn.googlesource.com/dawn), the implementation of WebGPU used by Chromium and its derivatives (Google Chrome, MS Edge, etc.).
+- `EMSCRIPTEN` to prevent fetching any implementation, because a Web app cross-compiled with emscripten uses the implementation of the client's web browser.
 
-This backend is provided as pre-compiled binaries. You need to trust these binaries, but if you do it is the fastest solution.
+> [!TIP]
+> When using `emcmake` (the CMake wrapper provided by emscripten), there is **no need** to explicitly set `WEBGPU_BACKEND` to `EMSCRIPTEN`. It will be automaticlaly detected and no implementation will be fetched.
 
-This is also the solution to use for fully offline builds as it does not fetch any other content.
+> [!NOTE]
+> A notable implementation of WebGPU that is not supported here is the one from [WebKit](https://webkit.org/). It might be added in the future, although it is not a priority since it is not as cross-platform (it does not support Windows).
 
-### Option C: Comfort
+#### ☑️ Building from source <a name="building-from-source"></a>
 
-**Branch:** `dawn`
+The option `WEBGPU_BUILD_FROM_SOURCE` can be turned `ON` to build the implementation from source rather than downloading a pre-compiled version.
 
-**Extra dependency:** [Python](https://www.python.org)
+**Pros of building from source:**
 
-The Dawn-based branch compiles a WebGPU backend entirely from source, including a code generation step that requires Python. This is safer but takes some time to build the first time.
+- You can check that no malicious code was added.
+- You can refine the compilation options (e.g., you may tweak in [`dawn/FetchDawnSource.cmake`](dawn/FetchDawnSource.cmake) the options that are passed to Dawn).
+- You can inspect the source code of your implementation when debugging, to better track down your issues down to the underlying graphics API (DirectX, Vulkan, Metal).
+- You can modify and customize the implementation (as long as you don't try to use your extensions in Web builds).
+- You can build for platforms for which precompiled binaries are not provided.
 
-Dawn provides much more details about errors than wgpu-native. And since it is a C++ project, it provides stack trace information that integrates nicely in IDEs.
+**Pros of using prebuilt binaries:**
 
-### Option D: Web
+- It is much faster to build your project the first time, and slightly faster the other times.
+- It uses less disk space.
+- You do not need to download as much data at configuration time.
+- You can use the rust implementation despite building a C++ project.
+- You do not inherit all build dependencies from the implementation (e.g., Dawn build requires Python)
 
-**Branch:** `emscripten`
+> [!NOTE]
+> Building from source is only supported with Dawn for now, because Dawn uses CMake while building `wgpu-native` requires a rust toolchain. There is plan to add CMake support to the [upstream repository](https://github.com/gfx-rs/wgpu-native), after which this distribution could support such an option.
 
-One of the strengths of WebGPU is to be possibly built as web pages. This branch is very lightweight, since when targeting only the web, no backend is needed (the web browser provides is at runtime).
+> [!TIP]
+> This whole distribution is designed to make it **easy to switch options**. We recommend to first try using precompiled binaries as it will quickly get you to your first build (unless one of the drawbacks mentionned above is a dealbreaker); you may later switch to a build from source if needed.
 
-Details
--------
+#### ☑️ Link type <a name="link-type"></a>
 
-> *Why is this distribution repository needed?*
+The WebGPU implementation may be linked either dynamically (`WEBGPU_LINK_TYPE=SHARED`) or statically (`WEBGPU_LINK_TYPE=STATIC`).
 
-In theory we could use WebGPU backends as packaged by their developers. However in their current state, they suffer from some limitations:
+**Some pros of dynamic linking:**
 
- - wgpu-native does not provide any CMake integration.
+- Your binary is smaller because it does not include the WebGPU implementation.
+- The library must still be provided, as a .so/.dll/.dylib. You probably want to put this file right next to your executable because there is too much risk that versions of the backend found elsewhere on your system do not match.
+- The shared library is particularly beneficial when you distribute multiple executable that are ensured to use compatible versions of WebGPU.
+- You can use a different compiler to build your app than the one used to build WebGPU (e.g., MSVC vs MinGW)
 
- - wgpu-native auto-built binaries have some issues: binaries for Windows and macOS were incorrectly named (defeating linking), Windows release build is sometimes missing.
+**Some pros of static linking:**
 
- - Dawn build instructions require the installation of depot_tools, which is overkill: our distribution replaces it with a simple Python script, Python being needed anyways for code generation purposes.
+- Your binary is self-contained.
+- You do not risk a runtime mismatch with a wrong version of the library.
 
- - Dawn provides a C++ interface similar in some ways to WebGPU-C++ but that cannot be used with wgpu-native because it directly communicates with the Dawn backend instead of using only the standard `webgpu.h` header.
+> [!TIP]
+> In order to limit the risk of trouble, this distribution provides a function `target_copy_webgpu_binaries` to be called on your executable in order to copy the right .so/.dll/.dylib file next to your executable when using dynamic linking.
 
-### Shallow clone
+> [!WARNING]
+> Not all combinations of options allow static linking. Feel free to request further investigation through an [Issue](https://github.com/eliemichel/WebGPU-distribution/issues) or propose changes through a [Pull Request](https://github.com/eliemichel/WebGPU-distribution/pulls) to help tackling this limitation.
 
-**Important.** When using this repository as a submodule, you should advise your users to add `--shallow-submodules` to their `git clone` command so that they only download the branch you picked.
+#### ☑️ Implementation version <a name="implementation-version"></a>
 
-I am not very happy with this, as it is likely that people forget it. I'm thinking of splitting this repository into multiple ones, namely one per option, but it is not ideal. In the meantime, a safe option is to just copy the content of this `main` branch into your repo.
+By default, this distribution points to a specific version of Dawn or wgpu-native. It is possible to change this version, but it **requires to be careful**:
 
+- The C++ extensions `webgpu.hpp` and `webgpu-raii.hpp` (from [WebGPU-Cpp](https://github.com/eliemichel/WebGPU-Cpp)) that are provided with this distribution are **specific to the default version** (recalled in `dawn/dawn-git-tag.txt`, `wgpu-native/wgpu-native-git-tag.txt` and `emscripten/emscripten-git-tag.txt`). You must re-generate them when switching to a different version (e.g., using the [Web interface](https://eliemichel.github.io/WebGPU-Cpp) of WebGPU-Cpp).
 
-### Future work
+- Precompiled binaries are not available for all versions. In particular, Dawn does not provide any, so I regularly upload binaries on [eliemichel/dawn-prebuilt](https://github.com/eliemichel/dawn-prebuilt) (detailed build logs are available in [Actions](https://github.com/eliemichel/dawn-prebuilt/actions/workflows/ci.yml) for the sake of transparency) but you may only use a version available in [Releases](https://github.com/eliemichel/dawn-prebuilt/releases).
 
-**Single-platform precompiled library.** I initially cared about providing a standalone folder that can be dropped in any project or shared with students and works on any desktop platform without the need for an Internet connection or anything (what the `wgpu` branch does).
+**Dawn.** The version of Dawn is specified through the variable `DAWN_VERSION`, and is a simple revision number (the one found after "chromium/" in the tag name used to mark releases in their git repository). When building from source, the variable `DAWN_SOURCE_MIRROR` is used as repository to pull from. When using precompiled binaries, the variable `DAWN_BINARY_MIRROR` is the GitHub repository where to look for a binary release that matches the target version.
 
-While I intend to maintain this possibility, since the *Flexibility* option already uses a FetchContent mechanism it could be used to download only the binaries needed for the current platform.
-
-**Static linking.** wgpu-native now also auto-builds static libraries, they are included as an alternative in the `wgpu-static` branch but this is highly untested (and I'm pretty sure it does not work for MSVC).
-
-**Precompiled Dawn binaries.** Is it worth it? Initial compilation takes time, but then it is okay. Could use [Zig](https://github.com/hexops/mach-gpu-dawn) for this.
+**wgpu-native.** The version of wgpu-native is specified through the variable `WGPU_VERSION`, and must be a valid release of the repository passed as `WGPU_BINARY_MIRROR`. The official repository is `https://github.com/gfx-rs/wgpu-native` and I sometimes release early versions on `https://github.com/eliemichel/wgpu-native`.

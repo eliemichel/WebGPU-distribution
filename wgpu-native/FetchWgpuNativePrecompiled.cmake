@@ -24,25 +24,20 @@
 
 include(FetchContent)
 
-set(WGPU_LINK_TYPE "SHARED" CACHE STRING "Whether the wgpu-native WebGPU implementation must be statically or dynamically linked. Possible values are STATIC and SHARED")
-set_property(CACHE WGPU_LINK_TYPE PROPERTY STRINGS SHARED STATIC)
-set(WGPU_VERSION "v24.0.0.2" CACHE STRING "Version of the wgpu-native WebGPU implementation to use. Must correspond to the tag name of an existing release on https://github.com/gfx-rs/wgpu-native/releases. Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions.")
-set(WGPU_MIRROR "https://github.com/gfx-rs/wgpu-native" CACHE STRING "This is ultimately supposed to be https://github.com/gfx-rs/wgpu-native, where official binaries will be auto-released, but in the meantime we use a different mirror.")
-
 # Not using emscripten, so we download binaries. There are many different
 # combinations of OS, CPU architecture and compiler (the later is only
 # relevant when using static linking), so here are a lot of boring "if".
 
 detect_system_architecture()
 
-# Check 'WGPU_LINK_TYPE' argument
+# Check 'WEBGPU_LINK_TYPE' argument
 set(USE_SHARED_LIB)
-if (WGPU_LINK_TYPE STREQUAL "SHARED")
+if (WEBGPU_LINK_TYPE STREQUAL "SHARED")
 	set(USE_SHARED_LIB TRUE)
-elseif (WGPU_LINK_TYPE STREQUAL "STATIC")
+elseif (WEBGPU_LINK_TYPE STREQUAL "STATIC")
 	set(USE_SHARED_LIB FALSE)
 else()
-	message(FATAL_ERROR "Link type '${WGPU_LINK_TYPE}' is not valid. Possible values for WGPU_LINK_TYPE are SHARED and STATIC.")
+	message(FATAL_ERROR "Link type '${WEBGPU_LINK_TYPE}' is not valid. Possible values for WEBGPU_LINK_TYPE are SHARED and STATIC.")
 endif()
 
 # Build URL to fetch
@@ -94,7 +89,7 @@ if (URL_COMPILER)
 else()
 	set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_CONFIG}")
 endif()
-set(URL "${WGPU_MIRROR}/releases/download/${WGPU_VERSION}/${URL_NAME}.zip")
+set(URL "${WGPU_BINARY_MIRROR}/releases/download/${WGPU_VERSION}/${URL_NAME}.zip")
 
 # Declare FetchContent, then make available
 FetchContent_Declare(${URL_NAME}

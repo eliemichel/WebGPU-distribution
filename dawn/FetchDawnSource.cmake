@@ -22,12 +22,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(DAWN_SOURCE_VERSION "7069" CACHE STRING "Version of the Dawn release to use. Must correspond to the number after 'chromium/' in an existing tag name in the source repository.")
-set(DAWN_SOURCE_MIRROR "https://dawn.googlesource.com/dawn" CACHE STRING "The repository where to find Dawn source code.")
-
 # Prevent multiple includes
 if (TARGET dawn_native)
 	return()
+endif()
+
+# Check 'WEBGPU_LINK_TYPE' argument
+if(WEBGPU_LINK_TYPE STREQUAL "STATIC")
+	message(FATAL_ERROR "Link type '${WEBGPU_LINK_TYPE}' is not supported yet in Dawn source distribution. Try falling back to WEBGPU_LINK_TYPE=SHARED.")
 endif()
 
 include(FetchContent)
@@ -36,14 +38,14 @@ find_package(Python3 REQUIRED)
 FetchContent_Declare(
 	dawn
 	#GIT_REPOSITORY ${DAWN_SOURCE_MIRROR}
-	#GIT_TAG        chromium/${DAWN_SOURCE_VERSION}
+	#GIT_TAG        chromium/${DAWN_VERSION}
 	#GIT_SHALLOW ON
 
 	# Manual download mode, even shallower than GIT_SHALLOW ON
 	DOWNLOAD_COMMAND
 		cd ${FETCHCONTENT_BASE_DIR}/dawn-src &&
 		git init &&
-		git fetch --depth=1 ${DAWN_SOURCE_MIRROR} chromium/${DAWN_SOURCE_VERSION} &&
+		git fetch --depth=1 ${DAWN_SOURCE_MIRROR} chromium/${DAWN_VERSION} &&
 		git reset --hard FETCH_HEAD
 
 	PATCH_COMMAND
@@ -111,15 +113,20 @@ set(AllDawnTargets
 	tint_api_common
 	tint_cmd_common
 	tint_lang_core
+	tint_lang_core_common
 	tint_lang_core_constant
 	tint_lang_core_intrinsic
 	tint_lang_core_ir
+	tint_lang_core_ir_analysis
 	tint_lang_core_ir_transform
 	tint_lang_core_ir_transform_common
+	tint_lang_core_ir_type
 	tint_lang_core_type
 	tint_lang_glsl_validate
 	tint_lang_hlsl_writer_common
 	tint_lang_hlsl_writer_helpers
+	tint_lang_hlsl_writer_printer
+	tint_lang_hlsl_writer_raise
 	tint_lang_msl
 	tint_lang_msl_intrinsic
 	tint_lang_msl_ir
@@ -155,9 +162,7 @@ set(AllDawnTargets
 	tint_lang_wgsl_writer_ir_to_program
 	tint_lang_wgsl_writer_raise
 	tint_lang_wgsl_writer_syntax_tree_printer
-    tint_lang_core_common
-    tint_lang_hlsl_writer_printer
-    tint_lang_hlsl_writer_raise
+	tint_utils
 	tint_utils_bytes
 	tint_utils_command
 	tint_utils_containers
@@ -172,6 +177,7 @@ set(AllDawnTargets
 	tint_utils_symbol
 	tint_utils_system
 	tint_utils_text
+	tint_utils_text_generator
 )
 
 foreach (Target ${AllDawnTargets})
