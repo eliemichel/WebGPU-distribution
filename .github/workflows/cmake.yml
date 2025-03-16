@@ -1,0 +1,85 @@
+name: CMake
+
+# Controls when the workflow will run
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        system: [ Linux-x64, Windows-MSVC-x64, Windows-MSYS-x64, MacOS-x64, MacOS-ARM ]
+        webgpu-backend: [ DAWN, WGPU ]
+        link-type: [ SHARED, STATIC ]
+        build-type: [ Debug, Release ]
+
+        include:
+        - system: Linux-x64
+          runner: ubuntu-latest
+          install-deps: |
+            sudo apt-get update -y
+            sudo apt-get install -y xorg-dev
+
+        - system: Windows-MSVC-x64
+          runner: windows-latest
+          exe-extension: .exe
+          is-multiconfig: true
+
+        - system: Windows-MSYS-x64
+          runner: windows-latest
+          msystem: ucrt64
+          extra-cmake-args: -G "MSYS Makefiles"
+          exe-extension: .exe
+
+        - system: MacOS-ARM
+          runner: macos-latest
+
+        - system: MacOS-x64
+          runner: macos-13
+
+        exclude:
+        - webgpu-backend: DAWN
+          link-type: STATIC
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      if: ${{ matrix.install-deps }}
+      run: ${{ matrix.install-deps }}
+
+    - name: Setup MSYS
+      if: ${{ matrix.msystem }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        pacboy: cmake:p
+
+    - name: Configure CMake
+      run: >
+        cmake
+        -S .github/example
+        -B build
+        -DWEBGPU_BACKEND=${{ matrix.webgpu-backend }}
+        -D${{ matrix.webgpu-backend }}_LINK_TYPE=${{ matrix.link-type }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+        ${{ matrix.extra-cmake-args }}
+
+    - name: Build
+      run: >
+        cmake
+        --build build
+        --config ${{ matrix.build-type }}
+
+    - name: Run (Multiconfig)
+      if: ${{ matrix.is-multiconfig }}
+      run: build/${{ matrix.build-type }}/test${{ matrix.exe-extension }}
+
+    - name: Run (Monoconfig)
+      if: ${{ !matrix.is-multiconfig }}
+      run: build/test${{ matrix.exe-extension }}
