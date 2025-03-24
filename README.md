@@ -31,6 +31,8 @@ Outline
     + [Building from source](building-from-source)
     + [Link type](link-type)
     + [Implementation version](#implementation-version)
+- [Troubleshooting](#troubleshooting)
+  * [Path size limit on Windows](#path-size-limit-on-windows)
 
 Overview
 --------
@@ -198,3 +200,13 @@ By default, this distribution points to a specific version of Dawn or wgpu-nativ
 **Dawn.** The version of Dawn is specified through the variable `DAWN_VERSION`, and is a simple revision number (the one found after "chromium/" in the tag name used to mark releases in their git repository). When building from source, the variable `DAWN_SOURCE_MIRROR` is used as the repository to pull from. When using precompiled binaries, the variable `DAWN_BINARY_MIRROR` is the GitHub repository in which to look for a binary release that matches the target version.
 
 **wgpu-native.** The version of wgpu-native is specified through the variable `WGPU_VERSION`, and must be a valid release of the repository passed as `WGPU_BINARY_MIRROR`. The official repository is `https://github.com/gfx-rs/wgpu-native` and I sometimes release early versions on `https://github.com/eliemichel/wgpu-native`.
+
+Troubleshooting
+---------------
+
+### Path size limit on Windows
+
+By default, Windows limits path size to 260 characters, which may be reached due to how CMake organizes its internal directories like `my_project/build/_deps/wgpu-windows-x86_64...`. If you run into such an issue, look for `FetchContent_Declare(${FC_NAME} ...` and **right before** this re-define the name of the fetched content with `set(FC_NAME shortname)`, where "shortname" can be anything.
+
+> [!NOTE]
+> The `FC_NAME` is longer by default to help readability when browsing the `build/_deps` directory.

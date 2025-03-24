@@ -91,14 +91,16 @@ else()
 endif()
 set(URL "${WGPU_BINARY_MIRROR}/releases/download/${WGPU_VERSION}/${URL_NAME}.zip")
 
+string(TOLOWER "${URL_NAME}" FC_NAME)
+
 # Declare FetchContent, then make available
-FetchContent_Declare(${URL_NAME}
+FetchContent_Declare(${FC_NAME}
 	URL ${URL}
 )
 # TODO: Display the "Fetching" message only when actually downloading
 message(STATUS "Fetching WebGPU implementation from '${URL}'")
-FetchContent_MakeAvailable(${URL_NAME})
-set(ZIP_DIR "${${URL_NAME}_SOURCE_DIR}")
+FetchContent_MakeAvailable(${FC_NAME})
+set(ZIP_DIR "${${FC_NAME}_SOURCE_DIR}")
 
 # A pre-compiled target (IMPORTED) that is a dynamically linked library
 # (SHARED, meaning .dll, .so or .dylib) or statically linked (.a or .lib).
