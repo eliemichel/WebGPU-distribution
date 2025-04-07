@@ -24,12 +24,12 @@ jobs:
             sudo apt-get install -y xorg-dev
 
         - system: Windows-MSVC-x64
-          runner: windows-2025
+          runner: windows-latest
           exe-extension: .exe
           is-multiconfig: true
 
         - system: Windows-MSYS-x64
-          runner: windows-2025
+          runner: windows-latest
           msystem: ucrt64
           extra-cmake-args: -G "MSYS Makefiles"
           exe-extension: .exe
