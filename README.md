@@ -141,6 +141,13 @@ The first thing to decide on is the value of `WEBGPU_BACKEND`, which can be:
 > [!NOTE]
 > A notable implementation of WebGPU that is not supported here is the one from [WebKit](https://webkit.org/). It might be added in the future, although it is not a priority since it is not as cross-platform (it does not support Windows).
 
+**When using emscripten**, there are **two possible *ports*** of WebGPU, i.e., two different versions of the C interface that gets mapped to the JavaScript API. One is **the official one**, and the other one -- called **[emdawnwebgpu](https://dawn.googlesource.com/dawn/+/refs/heads/main/src/emdawnwebgpu/)** -- is provided by the Dawn team to get an API that is more up to date but breaks more often.
+
+By default, this distribution uses emdawnwebgpu because its interface is closer to native versions of the APIs, but it is possible to fall back to emscripten's default by specifying `WEBGPU_USE_EMDAWNWEBGPU=OFF`.
+
+> [!NOTE]
+> This distinction between emdawnwebgpu and emscripten's default is only going to last until the WebGPU native API reaches 1.0, after which emscripten will upgrade and backward compatibility will be ensured.
+
 #### ☑️ Building from source <a name="building-from-source"></a>
 
 The option `WEBGPU_BUILD_FROM_SOURCE` can be turned `ON` to build the implementation from source rather than downloading a pre-compiled version.

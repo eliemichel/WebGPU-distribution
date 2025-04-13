@@ -2,7 +2,7 @@
 #   https://eliemichel.github.io/LearnWebGPU
 # 
 # MIT License
-# Copyright (c) 2022-2024 Elie Michel and the wgpu-native authors
+# Copyright (c) 2022-2025 Elie Michel and the wgpu-native authors
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-message(STATUS "Using emscripten backend for WebGPU")
+option(WEBGPU_USE_EMDAWNWEBGPU "Use emdawnwebgpu ports to provide a more up to date version of WebGPU than emscripten" ON)
+
+if (WEBGPU_USE_EMDAWNWEBGPU)
+	message(STATUS "Using emdawnwebgpu backend for WebGPU")
+else()
+	message(STATUS "Using emscripten backend for WebGPU")
+endif()
 
 # When using emscripten, we do not download any WebGPU implementation
 # because emscripten will convert all calls to the WebGPU API into their
@@ -40,9 +46,23 @@ target_include_directories(webgpu INTERFACE
 # This is used to advertise the flavor of WebGPU that this zip provides
 target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_EMSCRIPTEN)
 
-target_link_options(webgpu INTERFACE
-    -sUSE_WEBGPU # Handle WebGPU symbols when linking
-)
+if (WEBGPU_USE_EMDAWNWEBGPU)
+
+	target_compile_options(webgpu INTERFACE
+		"--use-port=${CMAKE_CURRENT_SOURCE_DIR}/ports/emdawnwebgpu.py"
+	)
+
+	target_link_options(webgpu INTERFACE
+		"--use-port=${CMAKE_CURRENT_SOURCE_DIR}/ports/emdawnwebgpu.py"
+	)
+
+else (WEBGPU_USE_EMDAWNWEBGPU)
+
+	target_link_options(webgpu INTERFACE
+		-sUSE_WEBGPU # Handle WebGPU symbols when linking
+	)
+
+endif (WEBGPU_USE_EMDAWNWEBGPU)
 
 # There is no dll/so/dylib to copy in this case
 function(target_copy_webgpu_binaries Target)
