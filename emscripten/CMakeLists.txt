@@ -38,15 +38,18 @@ endif()
 
 add_library(webgpu INTERFACE)
 
-# Add include path to webgpu.hpp
-target_include_directories(webgpu INTERFACE
-	"${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
-
 # This is used to advertise the flavor of WebGPU that this zip provides
 target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_EMSCRIPTEN)
 
 if (WEBGPU_USE_EMDAWNWEBGPU)
+
+	# Extra implementation define, in case it can be useful
+	target_compile_definitions(webgpu INTERFACE WEBGPU_BACKEND_EMDAWNWEBGPU)
+
+	# Add include path to webgpu.hpp
+	target_include_directories(webgpu INTERFACE
+		"${CMAKE_CURRENT_SOURCE_DIR}/include-emdawnwebgpu"
+	)
 
 	target_compile_options(webgpu INTERFACE
 		"--use-port=${CMAKE_CURRENT_SOURCE_DIR}/ports/emdawnwebgpu.py"
@@ -57,6 +60,11 @@ if (WEBGPU_USE_EMDAWNWEBGPU)
 	)
 
 else (WEBGPU_USE_EMDAWNWEBGPU)
+
+	# Add include path to webgpu.hpp
+	target_include_directories(webgpu INTERFACE
+		"${CMAKE_CURRENT_SOURCE_DIR}/include"
+	)
 
 	target_link_options(webgpu INTERFACE
 		-sUSE_WEBGPU # Handle WebGPU symbols when linking
