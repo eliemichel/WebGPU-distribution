@@ -43,9 +43,9 @@ This repository provides a **distribution** of these implementations that is:
 
  - **Easy to integrate.** This is a standard [CMake](https://cmake.org) project, that can be included either with a simple `add_subdirectory` (potentially using git submodules) or using [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html). No esoteric build tool is needed.
 
- - **Interchangeable.** Switching from one backend to another one does not require any change to the build system. A preprocessor variable `WEBGPU_BACKEND_WGPU` or `WEBGPU_BACKEND_DAWN` is defined to handle discrepancies in the source code (if any).
+ - **Interchangeable.** Switching from one backend to another one does not require any change to the build system. A preprocessor variable is defined to handle discrepancies in the source code (if any): `WEBGPU_BACKEND_EMSCRIPTEN` `WEBGPU_BACKEND_EMDAWNWEBGPU`, `WEBGPU_BACKEND_WGPU` or `WEBGPU_BACKEND_DAWN`
 
- - **emscripten-ready** When calling `emcmake`, these distributions switch to emscripten's WebGPU header (which is mapped to JavaScript WebGPU API).
+ - **emscripten-ready** When calling `emcmake`, these distributions switch to emscripten's WebGPU header (which is mapped to JavaScript WebGPU API). They either use emscripten's built-in WebGPU, or fetch a more recent port from emdawnwebgpu.
 
  - **Built from source** or **precompiled** depending on the value of `WEBGPU_BUILD_FROM_SOURCE` specified when invoking `cmake`.
 
@@ -134,19 +134,13 @@ The first thing to decide on is the value of `WEBGPU_BACKEND`, which can be:
 - `WGPU` to use [wgpu-native](https://github.com/gfx-rs/wgpu-native), that is based on the Rust library [`wgpu`](https://github.com/gfx-rs/wgpu), which not only fuels Firefox but also a large portion of Rust graphics applications.
 - `DAWN` to use [Dawn](https://dawn.googlesource.com/dawn), the implementation of WebGPU used by Chromium and its derivatives (Google Chrome, MS Edge, etc.).
 - `EMSCRIPTEN` to prevent fetching any implementation, because a Web app cross-compiled with emscripten uses the implementation of the client's web browser.
+- `EMDAWNWEBGPU` uses a different *port* than what emscripten provides by default to convert calls to the C API into calls of the Web API. This port -- called **[emdawnwebgpu](https://dawn.googlesource.com/dawn/+/refs/heads/main/src/emdawnwebgpu/)** -- is more up to date but may break more often compatibility.
 
 > [!TIP]
-> When using `emcmake` (the CMake wrapper provided by emscripten), there is **no need** to explicitly set `WEBGPU_BACKEND` to `EMSCRIPTEN`. It will be automatically detected and no implementation will be fetched.
+> When using `emcmake` (the CMake wrapper provided by emscripten), the default backend is `EMDAWNWEBGPU`.
 
 > [!NOTE]
 > A notable implementation of WebGPU that is not supported here is the one from [WebKit](https://webkit.org/). It might be added in the future, although it is not a priority since it is not as cross-platform (it does not support Windows).
-
-**When using emscripten**, there are **two possible *ports*** of WebGPU, i.e., two different versions of the C interface that gets mapped to the JavaScript API. One is **the official one**, and the other one -- called **[emdawnwebgpu](https://dawn.googlesource.com/dawn/+/refs/heads/main/src/emdawnwebgpu/)** -- is provided by the Dawn team to get an API that is more up to date but breaks more often.
-
-By default, this distribution uses emdawnwebgpu because its interface is closer to native versions of the APIs, but it is possible to fall back to emscripten's default by specifying `WEBGPU_USE_EMDAWNWEBGPU=OFF`.
-
-> [!NOTE]
-> This distinction between emdawnwebgpu and emscripten's default is only going to last until the WebGPU native API reaches 1.0, after which emscripten will upgrade and backward compatibility will be ensured.
 
 #### ☑️ Building from source <a name="building-from-source"></a>
 
@@ -195,6 +189,9 @@ The WebGPU implementation may be linked either dynamically (`WEBGPU_LINK_TYPE=SH
 
 > [!WARNING]
 > Not all combinations of options allow static linking. Feel free to request further investigation through an [Issue](https://github.com/eliemichel/WebGPU-distribution/issues) or propose changes through a [Pull Request](https://github.com/eliemichel/WebGPU-distribution/pulls) to help tackle this limitation.
+
+> [!NOTE]
+> Link type is **ignored when building with emscripten** (be it the EMSCRIPTEN or the EMDAWNWEBGPU backend), since in all cases the final WASM module calls the browser's implementation.
 
 #### ☑️ Implementation version <a name="implementation-version"></a>
 
