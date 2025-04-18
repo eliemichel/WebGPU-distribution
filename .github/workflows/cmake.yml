@@ -22,7 +22,7 @@ jobs:
           runner: ubuntu-latest
           install-deps: |
             sudo apt-get update -y
-            sudo apt-get install -y xorg-dev libx11-dev
+            sudo apt-get install -y xorg-dev libx11-dev libx11-xcb-dev
 
         - system: Windows-MSVC-x64
           runner: windows-latest
