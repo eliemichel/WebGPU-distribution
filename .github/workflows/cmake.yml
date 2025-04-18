@@ -15,6 +15,7 @@ jobs:
         webgpu-backend: [ DAWN, WGPU ]
         link-type: [ SHARED, STATIC ]
         build-type: [ Debug, Release ]
+        build-from-source: [ OFF, ON ]
 
         include:
         - system: Linux-x64
@@ -44,6 +45,9 @@ jobs:
         - webgpu-backend: DAWN
           link-type: STATIC
 
+        - webgpu-backend: WGPU
+          build-from-source: ON
+
     runs-on: ${{ matrix.runner }}
 
     steps:
@@ -66,7 +70,8 @@ jobs:
         -S .github/example
         -B build
         -DWEBGPU_BACKEND=${{ matrix.webgpu-backend }}
-        -D${{ matrix.webgpu-backend }}_LINK_TYPE=${{ matrix.link-type }}
+        -DWEBGPU_LINK_TYPE=${{ matrix.link-type }}
+        -DWEBGPU_BUILD_FROM_SOURCE=${{ matrix.build-from-source }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
         ${{ matrix.extra-cmake-args }}
 
