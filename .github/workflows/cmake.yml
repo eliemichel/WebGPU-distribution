@@ -22,7 +22,7 @@ jobs:
           runner: ubuntu-latest
           install-deps: |
             sudo apt-get update -y
-            sudo apt-get install -y xorg-dev
+            sudo apt-get install -y xorg-dev libx11-dev
 
         - system: Windows-MSVC-x64
           runner: windows-latest
@@ -42,9 +42,19 @@ jobs:
           runner: macos-13
 
         exclude:
+        # Building Dawn as a static lib was not correctly setup in Dawn's
+        # CMakeLists last time I checked, worth checking again every once in
+        # a while because it should ultimately be possible.
         - webgpu-backend: DAWN
           link-type: STATIC
 
+        # Building on msys is not officially supported by Dawn
+        - system: Windows-MSYS-x64
+          webgpu-backend: DAWN
+          build-from-source: ON
+
+        # Building from source is not supported with wgpu-native for now.
+        # It may become available through corrosion-rs one day.
         - webgpu-backend: WGPU
           build-from-source: ON
 
