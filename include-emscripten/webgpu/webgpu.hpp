@@ -126,11 +126,9 @@ class Type { \
 public: \
 	typedef Type S; /* S == Self */ \
 	typedef WGPU ## Type W; /* W == WGPU Type */ \
-	Type(const W& w) : m_raw(w) {} \
-	operator W() { return m_raw; } \
-private: \
-	W m_raw; \
-public:
+	constexpr Type(const W& w) : m_raw(w) {} \
+	constexpr operator W() const { return m_raw; } \
+	W m_raw; /* Ideally, this would be private, but then types generated with this macro would not be structural. It also cannot be const, see [this comment](https://github.com/eliemichel/WebGPU-Cpp/pull/21#issuecomment-2408875806) */
 
 #define ENUM_ENTRY(Name, Value) \
 	static constexpr W Name = (W)Value;
