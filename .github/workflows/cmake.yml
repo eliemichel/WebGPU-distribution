@@ -58,6 +58,11 @@ jobs:
         - webgpu-backend: WGPU
           build-from-source: ON
 
+        # Building from source is not working on linux at the moment with the minimal
+        # set of CMake options that we use. To be investigated.
+        - system: Linux-x64
+          build-from-source: ON
+
     runs-on: ${{ matrix.runner }}
 
     steps:
