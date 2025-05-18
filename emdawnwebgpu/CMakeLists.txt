@@ -32,16 +32,14 @@
 # emscripten how to compile WebGPU functions. This component is called a port
 # and we get it from Dawn's repository.
 
-set(EMDAWNWEBGPU_VERSION "v2025.04.12-03.06.48" CACHE STRING "\
+set(EMDAWNWEBGPU_VERSION "v20250517.163311" CACHE STRING "\
 	Version of the emdawnwebgpu to use. Must correspond to a valid tag on \
 	EMDAWNWEBGPU_MIRROR. \
 	Warning: The webgpu.hpp file provided in include/ may not be compatible with other \
 	versions than the default.")
 
-set(EMDAWNWEBGPU_MIRROR "https://github.com/kainino0x/dawn" CACHE STRING "\
-	The repository where to find emdawnwebgpu precompiled releases. This is ultimately \
-	supposed to be https://github.com/google/dawn, where official binaries will be \
-	auto-released, but in the meantime we use a different mirror.")
+set(EMDAWNWEBGPU_MIRROR "https://github.com/google/dawn" CACHE STRING "\
+	The repository where to find emdawnwebgpu precompiled releases.")
 
 #################################################
 # Fetch emdawnwebgpu port

@@ -22,15 +22,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(WGPU_VERSION "v24.0.0.2" CACHE STRING "\
+set(WGPU_VERSION "v24.0.3.1" CACHE STRING "\
 	Version of the wgpu-native WebGPU implementation to use. Must correspond \
 	to the tag name of an existing release on https://github.com/gfx-rs/wgpu-native/releases. \
 	Warning: The webgpu.hpp file provided in include/ may not be compatible with other versions.")
 
 set(WGPU_BINARY_MIRROR "https://github.com/gfx-rs/wgpu-native" CACHE STRING "\
-	The repository where to find precompiled releases of wgpu-native. \
-	This is ultimately supposed to be https://github.com/gfx-rs/wgpu-native, where official binaries \
-	are auto-released, but we may use a different mirror to get early access to newer versions.")
+	The repository where to find precompiled releases of wgpu-native.")
 
 if (WEBGPU_BUILD_FROM_SOURCE)
 	message(FATAL_ERROR "Building wgpu-native from source is not available. Either switch to Dawn (WEBGPU_BACKEND=DAWN) or use precompiled binaries (WEBGPU_BUILD_FROM_SOURCE=OFF).")
