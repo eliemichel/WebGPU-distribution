@@ -3,7 +3,7 @@
  *   https://github.com/eliemichel/LearnWebGPU
  *
  * MIT License
- * Copyright (c) 2022-2024 Elie Michel
+ * Copyright (c) 2022-2025 Elie Michel
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,29 +65,6 @@
 #    define NO_DISCARD
 #  endif
 #endif
-
-// Fix erroneous initializers from Dawn
-
-#undef WGPU_DAWN_TOGGLES_DESCRIPTOR_INIT
-#define WGPU_DAWN_TOGGLES_DESCRIPTOR_INIT _wgpu_MAKE_INIT_STRUCT(WGPUDawnTogglesDescriptor, { \
-    /*.chain=*/_wgpu_MAKE_INIT_STRUCT(WGPUChainedStruct, { \
-        /*.next=*/NULL _wgpu_COMMA \
-        /*.sType=*/WGPUSType_DawnTogglesDescriptor _wgpu_COMMA \
-    }) _wgpu_COMMA \
-    /*.enabledToggleCount=*/0 _wgpu_COMMA \
-    /*.enabledToggles=*/NULL _wgpu_COMMA \
-    /*.disabledToggleCount=*/0 _wgpu_COMMA \
-    /*.disabledToggles=*/NULL _wgpu_COMMA \
-})
-#undef WGPU_DAWN_WGSL_BLOCKLIST_INIT
-#define WGPU_DAWN_WGSL_BLOCKLIST_INIT _wgpu_MAKE_INIT_STRUCT(WGPUDawnWGSLBlocklist, { \
-    /*.chain=*/_wgpu_MAKE_INIT_STRUCT(WGPUChainedStruct, { \
-        /*.next=*/NULL _wgpu_COMMA \
-        /*.sType=*/WGPUSType_DawnWGSLBlocklist _wgpu_COMMA \
-    }) _wgpu_COMMA \
-    /*.blocklistedFeatureCount=*/0 _wgpu_COMMA \
-    /*.blocklistedFeatures=*/NULL _wgpu_COMMA \
-})
 
 /**
  * A namespace providing a more C++ idiomatic API to WebGPU.
@@ -1719,7 +1696,22 @@ HANDLE(Adapter)
 	Instance getInstance() const;
 	Status getLimits(Limits * limits) const;
 	Bool hasFeature(FeatureName feature) const;
-	Future requestDevice(const DeviceDescriptor& options, RequestDeviceCallbackInfo callbackInfo) const;
+	template<typename Lambda>
+	Future requestDevice(const DeviceDescriptor& options, CallbackMode callbackMode, const Lambda& callback) const {
+		auto* lambda = new Lambda(callback);
+		auto cCallback = [](WGPURequestDeviceStatus status, WGPUDevice device, WGPUStringView message, void* userdata1, void*) -> void {
+			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
+			(*lambda)(static_cast<RequestDeviceStatus>(status), device, message);
+		};
+		RequestDeviceCallbackInfo callbackInfo = {
+			/* nextInChain = */ nullptr,
+			/* mode = */ callbackMode,
+			/* callback = */ cCallback,
+			/* userdata1 = */ (void*)lambda,
+			/* userdata2 = */ nullptr,
+		};
+		return wgpuAdapterRequestDevice(m_raw, &options, callbackInfo);
+	}
 	void addRef() const;
 	void release() const;
 	Device requestDevice(const DeviceDescriptor& descriptor);
@@ -1744,7 +1736,22 @@ HANDLE(Buffer)
 	BufferMapState getMapState() const;
 	uint64_t getSize() const;
 	BufferUsage getUsage() const;
-	Future mapAsync(MapMode mode, size_t offset, size_t size, BufferMapCallbackInfo callbackInfo) const;
+	template<typename Lambda>
+	Future mapAsync(MapMode mode, size_t offset, size_t size, CallbackMode callbackMode, const Lambda& callback) const {
+		auto* lambda = new Lambda(callback);
+		auto cCallback = [](WGPUMapAsyncStatus status, WGPUStringView message, void* userdata1, void*) -> void {
+			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
+			(*lambda)(static_cast<MapAsyncStatus>(status), message);
+		};
+		BufferMapCallbackInfo callbackInfo = {
+			/* nextInChain = */ nullptr,
+			/* mode = */ callbackMode,
+			/* callback = */ cCallback,
+			/* userdata1 = */ (void*)lambda,
+			/* userdata2 = */ nullptr,
+		};
+		return wgpuBufferMapAsync(m_raw, static_cast<WGPUMapMode>(mode), offset, size, callbackInfo);
+	}
 	Status readMappedRange(size_t offset, void * data, size_t size) const;
 	void setLabel(StringView label) const;
 	void unmap() const;
@@ -1814,7 +1821,22 @@ HANDLE(Device)
 	CommandEncoder createCommandEncoder(const CommandEncoderDescriptor& descriptor) const;
 	CommandEncoder createCommandEncoder() const;
 	ComputePipeline createComputePipeline(const ComputePipelineDescriptor& descriptor) const;
-	Future createComputePipelineAsync(const ComputePipelineDescriptor& descriptor, CreateComputePipelineAsyncCallbackInfo callbackInfo) const;
+	template<typename Lambda>
+	Future createComputePipelineAsync(const ComputePipelineDescriptor& descriptor, CallbackMode callbackMode, const Lambda& callback) const {
+		auto* lambda = new Lambda(callback);
+		auto cCallback = [](WGPUCreatePipelineAsyncStatus status, WGPUComputePipeline pipeline, WGPUStringView message, void* userdata1, void*) -> void {
+			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
+			(*lambda)(static_cast<CreatePipelineAsyncStatus>(status), pipeline, message);
+		};
+		CreateComputePipelineAsyncCallbackInfo callbackInfo = {
+			/* nextInChain = */ nullptr,
+			/* mode = */ callbackMode,
+			/* callback = */ cCallback,
+			/* userdata1 = */ (void*)lambda,
+			/* userdata2 = */ nullptr,
+		};
+		return wgpuDeviceCreateComputePipelineAsync(m_raw, &descriptor, callbackInfo);
+	}
 	Buffer createErrorBuffer(const BufferDescriptor& descriptor) const;
 	ExternalTexture createErrorExternalTexture() const;
 	ShaderModule createErrorShaderModule(const ShaderModuleDescriptor& descriptor, StringView errorMessage) const;
@@ -1824,7 +1846,22 @@ HANDLE(Device)
 	QuerySet createQuerySet(const QuerySetDescriptor& descriptor) const;
 	RenderBundleEncoder createRenderBundleEncoder(const RenderBundleEncoderDescriptor& descriptor) const;
 	RenderPipeline createRenderPipeline(const RenderPipelineDescriptor& descriptor) const;
-	Future createRenderPipelineAsync(const RenderPipelineDescriptor& descriptor, CreateRenderPipelineAsyncCallbackInfo callbackInfo) const;
+	template<typename Lambda>
+	Future createRenderPipelineAsync(const RenderPipelineDescriptor& descriptor, CallbackMode callbackMode, const Lambda& callback) const {
+		auto* lambda = new Lambda(callback);
+		auto cCallback = [](WGPUCreatePipelineAsyncStatus status, WGPURenderPipeline pipeline, WGPUStringView message, void* userdata1, void*) -> void {
+			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
+			(*lambda)(static_cast<CreatePipelineAsyncStatus>(status), pipeline, message);
+		};
+		CreateRenderPipelineAsyncCallbackInfo callbackInfo = {
+			/* nextInChain = */ nullptr,
+			/* mode = */ callbackMode,
+			/* callback = */ cCallback,
+			/* userdata1 = */ (void*)lambda,
+			/* userdata2 = */ nullptr,
+		};
+		return wgpuDeviceCreateRenderPipelineAsync(m_raw, &descriptor, callbackInfo);
+	}
 	Sampler createSampler(const SamplerDescriptor& descriptor) const;
 	Sampler createSampler() const;
 	ShaderModule createShaderModule(const ShaderModuleDescriptor& descriptor) const;
@@ -1842,10 +1879,40 @@ HANDLE(Device)
 	SharedFence importSharedFence(const SharedFenceDescriptor& descriptor) const;
 	SharedTextureMemory importSharedTextureMemory(const SharedTextureMemoryDescriptor& descriptor) const;
 	void injectError(ErrorType type, StringView message) const;
-	Future popErrorScope(PopErrorScopeCallbackInfo callbackInfo) const;
+	template<typename Lambda>
+	Future popErrorScope(CallbackMode callbackMode, const Lambda& callback) const {
+		auto* lambda = new Lambda(callback);
+		auto cCallback = [](WGPUPopErrorScopeStatus status, WGPUErrorType type, WGPUStringView message, void* userdata1, void*) -> void {
+			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
+			(*lambda)(static_cast<PopErrorScopeStatus>(status), static_cast<ErrorType>(type), message);
+		};
+		PopErrorScopeCallbackInfo callbackInfo = {
+			/* nextInChain = */ nullptr,
+			/* mode = */ callbackMode,
+			/* callback = */ cCallback,
+			/* userdata1 = */ (void*)lambda,
+			/* userdata2 = */ nullptr,
+		};
+		return wgpuDevicePopErrorScope(m_raw, callbackInfo);
+	}
 	void pushErrorScope(ErrorFilter filter) const;
 	void setLabel(StringView label) const;
-	void setLoggingCallback(LoggingCallbackInfo callbackInfo) const;
+	template<typename Lambda>
+	void setLoggingCallback(CallbackMode callbackMode, const Lambda& callback) const {
+		auto* lambda = new Lambda(callback);
+		auto cCallback = [](WGPULoggingType type, WGPUStringView message, void* userdata1, void*) -> void {
+			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
+			(*lambda)(static_cast<LoggingType>(type), message);
+		};
+		LoggingCallbackInfo callbackInfo = {
+			/* nextInChain = */ nullptr,
+			/* mode = */ callbackMode,
+			/* callback = */ cCallback,
+			/* userdata1 = */ (void*)lambda,
+			/* userdata2 = */ nullptr,
+		};
+		return wgpuDeviceSetLoggingCallback(m_raw, callbackInfo);
+	}
 	void tick() const;
 	void validateTextureDescriptor(const TextureDescriptor& descriptor) const;
 	void addRef() const;
@@ -1866,7 +1933,22 @@ HANDLE(Instance)
 	Status getWGSLLanguageFeatures(SupportedWGSLLanguageFeatures * features) const;
 	Bool hasWGSLLanguageFeature(WGSLLanguageFeatureName feature) const;
 	void processEvents() const;
-	Future requestAdapter(const RequestAdapterOptions& options, RequestAdapterCallbackInfo callbackInfo) const;
+	template<typename Lambda>
+	Future requestAdapter(const RequestAdapterOptions& options, CallbackMode callbackMode, const Lambda& callback) const {
+		auto* lambda = new Lambda(callback);
+		auto cCallback = [](WGPURequestAdapterStatus status, WGPUAdapter adapter, WGPUStringView message, void* userdata1, void*) -> void {
+			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
+			(*lambda)(static_cast<RequestAdapterStatus>(status), adapter, message);
+		};
+		RequestAdapterCallbackInfo callbackInfo = {
+			/* nextInChain = */ nullptr,
+			/* mode = */ callbackMode,
+			/* callback = */ cCallback,
+			/* userdata1 = */ (void*)lambda,
+			/* userdata2 = */ nullptr,
+		};
+		return wgpuInstanceRequestAdapter(m_raw, &options, callbackInfo);
+	}
 	WaitStatus waitAny(size_t futureCount, FutureWaitInfo * futures, uint64_t timeoutNS) const;
 	void addRef() const;
 	void release() const;
@@ -1891,7 +1973,22 @@ END
 HANDLE(Queue)
 	void copyExternalTextureForBrowser(const ImageCopyExternalTexture& source, const TexelCopyTextureInfo& destination, const Extent3D& copySize, const CopyTextureForBrowserOptions& options) const;
 	void copyTextureForBrowser(const TexelCopyTextureInfo& source, const TexelCopyTextureInfo& destination, const Extent3D& copySize, const CopyTextureForBrowserOptions& options) const;
-	Future onSubmittedWorkDone(QueueWorkDoneCallbackInfo callbackInfo) const;
+	template<typename Lambda>
+	Future onSubmittedWorkDone(CallbackMode callbackMode, const Lambda& callback) const {
+		auto* lambda = new Lambda(callback);
+		auto cCallback = [](WGPUQueueWorkDoneStatus status, void* userdata1, void*) -> void {
+			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
+			(*lambda)(static_cast<QueueWorkDoneStatus>(status));
+		};
+		QueueWorkDoneCallbackInfo callbackInfo = {
+			/* nextInChain = */ nullptr,
+			/* mode = */ callbackMode,
+			/* callback = */ cCallback,
+			/* userdata1 = */ (void*)lambda,
+			/* userdata2 = */ nullptr,
+		};
+		return wgpuQueueOnSubmittedWorkDone(m_raw, callbackInfo);
+	}
 	void setLabel(StringView label) const;
 	void submit(size_t commandCount, CommandBuffer const * commands) const;
 	void submit(const std::vector<WGPUCommandBuffer>& commands) const;
@@ -1978,7 +2075,22 @@ HANDLE(Sampler)
 END
 
 HANDLE(ShaderModule)
-	Future getCompilationInfo(CompilationInfoCallbackInfo callbackInfo) const;
+	template<typename Lambda>
+	Future getCompilationInfo(CallbackMode callbackMode, const Lambda& callback) const {
+		auto* lambda = new Lambda(callback);
+		auto cCallback = [](WGPUCompilationInfoRequestStatus status, struct WGPUCompilationInfo const * compilationInfo, void* userdata1, void*) -> void {
+			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
+			(*lambda)(static_cast<CompilationInfoRequestStatus>(status), *reinterpret_cast<CompilationInfo const *>(compilationInfo));
+		};
+		CompilationInfoCallbackInfo callbackInfo = {
+			/* nextInChain = */ nullptr,
+			/* mode = */ callbackMode,
+			/* callback = */ cCallback,
+			/* userdata1 = */ (void*)lambda,
+			/* userdata2 = */ nullptr,
+		};
+		return wgpuShaderModuleGetCompilationInfo(m_raw, callbackInfo);
+	}
 	void setLabel(StringView label) const;
 	void addRef() const;
 	void release() const;
@@ -3306,9 +3418,6 @@ Status Adapter::getLimits(Limits * limits) const {
 Bool Adapter::hasFeature(FeatureName feature) const {
 	return wgpuAdapterHasFeature(m_raw, static_cast<WGPUFeatureName>(feature));
 }
-Future Adapter::requestDevice(const DeviceDescriptor& options, RequestDeviceCallbackInfo callbackInfo) const {
-	return wgpuAdapterRequestDevice(m_raw, &options, callbackInfo);
-}
 void Adapter::addRef() const {
 	return wgpuAdapterAddRef(m_raw);
 }
@@ -3359,9 +3468,6 @@ uint64_t Buffer::getSize() const {
 }
 BufferUsage Buffer::getUsage() const {
 	return static_cast<BufferUsage>(wgpuBufferGetUsage(m_raw));
-}
-Future Buffer::mapAsync(MapMode mode, size_t offset, size_t size, BufferMapCallbackInfo callbackInfo) const {
-	return wgpuBufferMapAsync(m_raw, static_cast<WGPUMapMode>(mode), offset, size, callbackInfo);
 }
 Status Buffer::readMappedRange(size_t offset, void * data, size_t size) const {
 	return static_cast<Status>(wgpuBufferReadMappedRange(m_raw, offset, data, size));
@@ -3540,9 +3646,6 @@ CommandEncoder Device::createCommandEncoder() const {
 ComputePipeline Device::createComputePipeline(const ComputePipelineDescriptor& descriptor) const {
 	return wgpuDeviceCreateComputePipeline(m_raw, &descriptor);
 }
-Future Device::createComputePipelineAsync(const ComputePipelineDescriptor& descriptor, CreateComputePipelineAsyncCallbackInfo callbackInfo) const {
-	return wgpuDeviceCreateComputePipelineAsync(m_raw, &descriptor, callbackInfo);
-}
 Buffer Device::createErrorBuffer(const BufferDescriptor& descriptor) const {
 	return wgpuDeviceCreateErrorBuffer(m_raw, &descriptor);
 }
@@ -3569,9 +3672,6 @@ RenderBundleEncoder Device::createRenderBundleEncoder(const RenderBundleEncoderD
 }
 RenderPipeline Device::createRenderPipeline(const RenderPipelineDescriptor& descriptor) const {
 	return wgpuDeviceCreateRenderPipeline(m_raw, &descriptor);
-}
-Future Device::createRenderPipelineAsync(const RenderPipelineDescriptor& descriptor, CreateRenderPipelineAsyncCallbackInfo callbackInfo) const {
-	return wgpuDeviceCreateRenderPipelineAsync(m_raw, &descriptor, callbackInfo);
 }
 Sampler Device::createSampler(const SamplerDescriptor& descriptor) const {
 	return wgpuDeviceCreateSampler(m_raw, &descriptor);
@@ -3624,17 +3724,11 @@ SharedTextureMemory Device::importSharedTextureMemory(const SharedTextureMemoryD
 void Device::injectError(ErrorType type, StringView message) const {
 	return wgpuDeviceInjectError(m_raw, static_cast<WGPUErrorType>(type), message);
 }
-Future Device::popErrorScope(PopErrorScopeCallbackInfo callbackInfo) const {
-	return wgpuDevicePopErrorScope(m_raw, callbackInfo);
-}
 void Device::pushErrorScope(ErrorFilter filter) const {
 	return wgpuDevicePushErrorScope(m_raw, static_cast<WGPUErrorFilter>(filter));
 }
 void Device::setLabel(StringView label) const {
 	return wgpuDeviceSetLabel(m_raw, label);
-}
-void Device::setLoggingCallback(LoggingCallbackInfo callbackInfo) const {
-	return wgpuDeviceSetLoggingCallback(m_raw, callbackInfo);
 }
 void Device::tick() const {
 	return wgpuDeviceTick(m_raw);
@@ -3683,9 +3777,6 @@ Bool Instance::hasWGSLLanguageFeature(WGSLLanguageFeatureName feature) const {
 }
 void Instance::processEvents() const {
 	return wgpuInstanceProcessEvents(m_raw);
-}
-Future Instance::requestAdapter(const RequestAdapterOptions& options, RequestAdapterCallbackInfo callbackInfo) const {
-	return wgpuInstanceRequestAdapter(m_raw, &options, callbackInfo);
 }
 WaitStatus Instance::waitAny(size_t futureCount, FutureWaitInfo * futures, uint64_t timeoutNS) const {
 	return static_cast<WaitStatus>(wgpuInstanceWaitAny(m_raw, futureCount, futures, timeoutNS));
@@ -3737,9 +3828,6 @@ void Queue::copyExternalTextureForBrowser(const ImageCopyExternalTexture& source
 }
 void Queue::copyTextureForBrowser(const TexelCopyTextureInfo& source, const TexelCopyTextureInfo& destination, const Extent3D& copySize, const CopyTextureForBrowserOptions& options) const {
 	return wgpuQueueCopyTextureForBrowser(m_raw, &source, &destination, &copySize, &options);
-}
-Future Queue::onSubmittedWorkDone(QueueWorkDoneCallbackInfo callbackInfo) const {
-	return wgpuQueueOnSubmittedWorkDone(m_raw, callbackInfo);
 }
 void Queue::setLabel(StringView label) const {
 	return wgpuQueueSetLabel(m_raw, label);
@@ -3963,9 +4051,6 @@ void Sampler::release() const {
 
 
 // Methods of ShaderModule
-Future ShaderModule::getCompilationInfo(CompilationInfoCallbackInfo callbackInfo) const {
-	return wgpuShaderModuleGetCompilationInfo(m_raw, callbackInfo);
-}
 void ShaderModule::setLabel(StringView label) const {
 	return wgpuShaderModuleSetLabel(m_raw, label);
 }
@@ -4168,7 +4253,7 @@ Adapter Instance::requestAdapter(const RequestAdapterOptions& options) {
 		context.requestEnded = true;
 	};
 	callbackInfo.mode = CallbackMode::AllowSpontaneous;
-	requestAdapter(options, callbackInfo);
+	wgpuInstanceRequestAdapter(*this, &options, callbackInfo);
 
 #if __EMSCRIPTEN__
 	while (!context.requestEnded) {
@@ -4207,7 +4292,7 @@ Device Adapter::requestDevice(const DeviceDescriptor& descriptor) {
 		context.requestEnded = true;
 	};
 	callbackInfo.mode = CallbackMode::AllowSpontaneous;
-	requestDevice(descriptor, callbackInfo);
+	wgpuAdapterRequestDevice(*this, &descriptor, callbackInfo);
 
 #if __EMSCRIPTEN__
 	while (!context.requestEnded) {
