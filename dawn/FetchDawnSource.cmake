@@ -32,6 +32,30 @@ if(WEBGPU_LINK_TYPE STREQUAL "STATIC")
 	message(FATAL_ERROR "Link type '${WEBGPU_LINK_TYPE}' is not supported yet in Dawn source distribution. Try falling back to WEBGPU_LINK_TYPE=SHARED.")
 endif()
 
+# Override Dawn default cache variables with a more minimalistic choice
+# of backend and the fetch script instead of depot_tools.
+option(DAWN_FETCH_DEPENDENCIES "Use fetch_dawn_dependencies.py as an alternative to using depot_tools" ON)
+
+if (APPLE)
+	set(ENABLE_VULKAN OFF)
+	set(ENABLE_METAL ON)
+else()
+	set(ENABLE_VULKAN ON)
+	set(ENABLE_METAL OFF)
+endif()
+option(DAWN_ENABLE_VULKAN "Enable compilation of the Vulkan backend" ${ENABLE_VULKAN})
+option(DAWN_ENABLE_METAL "Enable compilation of the Metal backend" ${ENABLE_METAL})
+option(DAWN_ENABLE_D3D11 "Enable compilation of the D3D11 backend" OFF)
+option(DAWN_ENABLE_D3D12 "Enable compilation of the D3D12 backend" OFF)
+option(DAWN_ENABLE_NULL "Enable compilation of the Null backend" OFF)
+option(DAWN_ENABLE_DESKTOP_GL "Enable compilation of the OpenGL backend" OFF)
+option(DAWN_ENABLE_OPENGLES "Enable compilation of the OpenGL ES backend" OFF)
+option(TINT_BUILD_SPV_READER "Build the SPIR-V input reader" OFF)
+option(DAWN_BUILD_SAMPLES "Enables building Dawn's samples" OFF)
+option(DAWN_BUILD_TESTS "Enables building Dawn's tests" OFF)
+option(TINT_BUILD_CMD_TOOLS "Build the Tint command line tools" OFF)
+option(TINT_BUILD_IR_BINARY "Build IR binary format support" OFF)
+
 include(FetchContent)
 find_package(Python3 REQUIRED)
 
@@ -53,40 +77,7 @@ FetchContent_Declare(
 		"-DPATCH_FILE=${CMAKE_CURRENT_LIST_DIR}/patch/dawn.patch"
 		-P "${PROJECT_SOURCE_DIR}/cmake/apply_patch_idempotent.cmake"
 )
-
-FetchContent_GetProperties(dawn)
-if (NOT dawn_POPULATED)
-	FetchContent_Populate(dawn)
-
-	# This option replaces depot_tools
-	set(DAWN_FETCH_DEPENDENCIES ON)
-
-	# A more minimalistic choice of backand than Dawn's default
-	if (APPLE)
-		set(USE_VULKAN OFF)
-		set(USE_METAL ON)
-	else()
-		set(USE_VULKAN ON)
-		set(USE_METAL OFF)
-	endif()
-
-	set(DAWN_ENABLE_D3D11 OFF)
-	set(DAWN_ENABLE_D3D12 OFF)
-	set(DAWN_ENABLE_METAL ${USE_METAL})
-	set(DAWN_ENABLE_NULL OFF)
-	set(DAWN_ENABLE_DESKTOP_GL OFF)
-	set(DAWN_ENABLE_OPENGLES OFF)
-	set(DAWN_ENABLE_VULKAN ${USE_VULKAN})
-	set(TINT_BUILD_SPV_READER OFF)
-
-	# Disable unneeded parts
-	set(DAWN_BUILD_SAMPLES OFF)
-	set(TINT_BUILD_CMD_TOOLS OFF)
-	set(TINT_BUILD_TESTS OFF)
-	set(TINT_BUILD_IR_BINARY OFF)
-
-	add_subdirectory(${dawn_SOURCE_DIR} ${dawn_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+FetchContent_MakeAvailable(dawn)
 
 set(AllDawnTargets
 	core_tables
