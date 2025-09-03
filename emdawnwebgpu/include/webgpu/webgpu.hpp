@@ -1147,7 +1147,7 @@ HANDLE(Adapter)
 			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
 			(*lambda)(static_cast<RequestDeviceStatus>(status), device, message);
 		};
-		RequestDeviceCallbackInfo callbackInfo = {
+		WGPURequestDeviceCallbackInfo callbackInfo = {
 			/* nextInChain = */ nullptr,
 			/* mode = */ callbackMode,
 			/* callback = */ cCallback,
@@ -1187,7 +1187,7 @@ HANDLE(Buffer)
 			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
 			(*lambda)(static_cast<MapAsyncStatus>(status), message);
 		};
-		BufferMapCallbackInfo callbackInfo = {
+		WGPUBufferMapCallbackInfo callbackInfo = {
 			/* nextInChain = */ nullptr,
 			/* mode = */ callbackMode,
 			/* callback = */ cCallback,
@@ -1269,7 +1269,7 @@ HANDLE(Device)
 			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
 			(*lambda)(static_cast<CreatePipelineAsyncStatus>(status), pipeline, message);
 		};
-		CreateComputePipelineAsyncCallbackInfo callbackInfo = {
+		WGPUCreateComputePipelineAsyncCallbackInfo callbackInfo = {
 			/* nextInChain = */ nullptr,
 			/* mode = */ callbackMode,
 			/* callback = */ cCallback,
@@ -1289,7 +1289,7 @@ HANDLE(Device)
 			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
 			(*lambda)(static_cast<CreatePipelineAsyncStatus>(status), pipeline, message);
 		};
-		CreateRenderPipelineAsyncCallbackInfo callbackInfo = {
+		WGPUCreateRenderPipelineAsyncCallbackInfo callbackInfo = {
 			/* nextInChain = */ nullptr,
 			/* mode = */ callbackMode,
 			/* callback = */ cCallback,
@@ -1315,7 +1315,7 @@ HANDLE(Device)
 			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
 			(*lambda)(static_cast<PopErrorScopeStatus>(status), static_cast<ErrorType>(type), message);
 		};
-		PopErrorScopeCallbackInfo callbackInfo = {
+		WGPUPopErrorScopeCallbackInfo callbackInfo = {
 			/* nextInChain = */ nullptr,
 			/* mode = */ callbackMode,
 			/* callback = */ cCallback,
@@ -1342,7 +1342,7 @@ HANDLE(Instance)
 			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
 			(*lambda)(static_cast<RequestAdapterStatus>(status), adapter, message);
 		};
-		RequestAdapterCallbackInfo callbackInfo = {
+		WGPURequestAdapterCallbackInfo callbackInfo = {
 			/* nextInChain = */ nullptr,
 			/* mode = */ callbackMode,
 			/* callback = */ cCallback,
@@ -1380,7 +1380,7 @@ HANDLE(Queue)
 			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
 			(*lambda)(static_cast<QueueWorkDoneStatus>(status));
 		};
-		QueueWorkDoneCallbackInfo callbackInfo = {
+		WGPUQueueWorkDoneCallbackInfo callbackInfo = {
 			/* nextInChain = */ nullptr,
 			/* mode = */ callbackMode,
 			/* callback = */ cCallback,
@@ -1479,7 +1479,7 @@ HANDLE(ShaderModule)
 			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
 			(*lambda)(static_cast<CompilationInfoRequestStatus>(status), *reinterpret_cast<CompilationInfo const *>(compilationInfo));
 		};
-		CompilationInfoCallbackInfo callbackInfo = {
+		WGPUCompilationInfoCallbackInfo callbackInfo = {
 			/* nextInChain = */ nullptr,
 			/* mode = */ callbackMode,
 			/* callback = */ cCallback,
