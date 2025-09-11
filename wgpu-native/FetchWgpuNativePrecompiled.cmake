@@ -61,46 +61,116 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
 	set(URL_OS "macos")
 
+elseif (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+
+	set(URL_OS "ios")
+
 else()
 
 	message(FATAL_ERROR "Platform system '${CMAKE_SYSTEM_NAME}' not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
 
 endif()
 
-set(URL_ARCH)
-if (ARCH STREQUAL "x86_64")
-	set(URL_ARCH "x86_64")
-elseif (ARCH STREQUAL "aarch64")
-	set(URL_ARCH "aarch64")
-elseif (ARCH STREQUAL "i686" AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
-	set(URL_ARCH "i686")
+# Determine architectures to download
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND WEBGPU_UNIVERSAL_MAC_LIB)
+	set(DOWNLOAD_ARCHS "x86_64" "aarch64")
+	message(STATUS "Universal macOS build requested - will download both x86_64 and aarch64 binaries")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "iOS" AND WEBGPU_IOS_SIMULATOR)
+	set(DOWNLOAD_ARCHS "x86_64" "aarch64")
+	message(STATUS "Universal iOS simulator build requested - will download both x86_64 and aarch64 binaries")
 else()
-	message(FATAL_ERROR "Platform architecture '${ARCH}' not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
+	set(DOWNLOAD_ARCHS "${ARCH}")
 endif()
 
-# We only fetch release builds (NB: this may cause issue when using static
-# linking, but not with dynamic)
-set(URL_CONFIG release)
+# Prepare variables for universal binary creation
+set(ALL_LIBS "")
+set(UNIVERSAL_ZIP_DIR "")
 
-# Finally build the URL. The URL_NAME is also used as FetchContent
-# identifier (BTW it must be lowercase).
-if (URL_COMPILER)
-	set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_COMPILER}-${URL_CONFIG}")
+# Process each architecture
+foreach(CURRENT_ARCH IN LISTS DOWNLOAD_ARCHS)
+	set(URL_ARCH)
+	if (CURRENT_ARCH STREQUAL "x86_64")
+		set(URL_ARCH "x86_64")
+	elseif (CURRENT_ARCH STREQUAL "aarch64")
+		set(URL_ARCH "aarch64")
+	elseif (CURRENT_ARCH STREQUAL "i686" AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
+		set(URL_ARCH "i686")
+	else()
+		message(FATAL_ERROR "Platform architecture '${CURRENT_ARCH}' not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
+	endif()
+
+	# We only fetch release builds (NB: this may cause issue when using static
+	# linking, but not with dynamic)
+	set(URL_CONFIG release)
+
+	# Finally build the URL. The URL_NAME is also used as FetchContent
+	# identifier (BTW it must be lowercase).
+	if (URL_COMPILER)
+		set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_COMPILER}-${URL_CONFIG}")
+	elseif (CMAKE_SYSTEM_NAME STREQUAL "iOS" AND WEBGPU_IOS_SIMULATOR)
+		set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-simulator-${URL_CONFIG}")
+	else()
+		set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_CONFIG}")
+	endif()
+	set(URL "${WGPU_BINARY_MIRROR}/releases/download/${WGPU_VERSION}/${URL_NAME}.zip")
+
+	string(TOLOWER "${URL_NAME}" FC_NAME)
+
+	# Declare FetchContent, then make available
+	FetchContent_Declare(${FC_NAME}
+		URL ${URL}
+	)
+	# TODO: Display the "Fetching" message only when actually downloading
+	message(STATUS "Fetching WebGPU implementation from '${URL}'")
+	FetchContent_MakeAvailable(${FC_NAME})
+	set(CURRENT_ZIP_DIR "${${FC_NAME}_SOURCE_DIR}")
+
+	# Store the library path for this architecture
+	build_lib_filename(BINARY_FILENAME "wgpu_native" ${USE_SHARED_LIB})
+	set(CURRENT_LIB "${CURRENT_ZIP_DIR}/lib/${BINARY_FILENAME}")
+	list(APPEND ALL_LIBS "${CURRENT_LIB}")
+
+	# Use first architecture's directory structure as template
+	if (NOT UNIVERSAL_ZIP_DIR)
+		set(UNIVERSAL_ZIP_DIR "${CURRENT_ZIP_DIR}")
+	endif()
+endforeach()
+
+# Create universal binary if needed
+if ((CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND WEBGPU_UNIVERSAL_MAC_LIB) OR
+	(CMAKE_SYSTEM_NAME STREQUAL "iOS" AND WEBGPU_IOS_SIMULATOR))
+	# Create universal library directory
+	set(UNIVERSAL_LIB_DIR "${CMAKE_BINARY_DIR}/webgpu_universal/lib")
+	file(MAKE_DIRECTORY "${UNIVERSAL_LIB_DIR}")
+
+	# Universal library path
+	set(UNIVERSAL_LIB "${UNIVERSAL_LIB_DIR}/${BINARY_FILENAME}")
+
+	# Create universal binary during configuration stage
+	message(STATUS "Creating universal binary: ${UNIVERSAL_LIB}")
+	execute_process(
+		COMMAND lipo -create ${ALL_LIBS} -output "${UNIVERSAL_LIB}"
+		RESULT_VARIABLE LIPO_RESULT
+		ERROR_VARIABLE LIPO_ERROR
+	)
+
+	if(NOT LIPO_RESULT EQUAL 0)
+		message(FATAL_ERROR "Failed to create universal binary: ${LIPO_ERROR}")
+	endif()
+
+	# Copy include directories from first architecture
+	set(UNIVERSAL_INCLUDE_DIR "${CMAKE_BINARY_DIR}/webgpu_universal/include")
+	file(MAKE_DIRECTORY "${UNIVERSAL_INCLUDE_DIR}")
+	execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${UNIVERSAL_ZIP_DIR}/include" "${UNIVERSAL_INCLUDE_DIR}")
+
+	# Update paths to use universal binary
+	set(ZIP_DIR "${CMAKE_BINARY_DIR}/webgpu_universal")
+	set(WEBGPU_RUNTIME_LIB "${UNIVERSAL_LIB}")
 else()
-	set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_CONFIG}")
+	# Single architecture - use existing logic
+	set(ZIP_DIR "${UNIVERSAL_ZIP_DIR}")
+	set(WEBGPU_RUNTIME_LIB "${ZIP_DIR}/lib/${BINARY_FILENAME}")
 endif()
-set(URL "${WGPU_BINARY_MIRROR}/releases/download/${WGPU_VERSION}/${URL_NAME}.zip")
-
-string(TOLOWER "${URL_NAME}" FC_NAME)
-
-# Declare FetchContent, then make available
-FetchContent_Declare(${FC_NAME}
-	URL ${URL}
-)
-# TODO: Display the "Fetching" message only when actually downloading
-message(STATUS "Fetching WebGPU implementation from '${URL}'")
-FetchContent_MakeAvailable(${FC_NAME})
-set(ZIP_DIR "${${FC_NAME}_SOURCE_DIR}")
 
 # A pre-compiled target (IMPORTED) that is a dynamically linked library
 # (SHARED, meaning .dll, .so or .dylib) or statically linked (.a or .lib).
@@ -118,7 +188,7 @@ target_include_directories(webgpu INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include")
 
 # TODO: There should be a wgpu-native-config.cmake file provided together with wgpu-native
 build_lib_filename(BINARY_FILENAME "wgpu_native" ${USE_SHARED_LIB})
-set(WEBGPU_RUNTIME_LIB "${ZIP_DIR}/lib/${BINARY_FILENAME}")
+# Use WEBGPU_RUNTIME_LIB which is set appropriately above for both universal and single-arch cases
 set_target_properties(
 	webgpu
 	PROPERTIES
@@ -205,7 +275,7 @@ else (USE_SHARED_LIB)
 				m
 		)
 
-	elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+	elseif ((CMAKE_SYSTEM_NAME STREQUAL "Darwin") OR (CMAKE_SYSTEM_NAME STREQUAL "iOS"))
 
 		target_link_libraries(
 			webgpu
