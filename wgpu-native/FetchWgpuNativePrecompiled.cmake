@@ -61,6 +61,10 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
 	set(URL_OS "macos")
 
+elseif (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+
+	set(URL_OS "ios")
+
 else()
 
 	message(FATAL_ERROR "Platform system '${CMAKE_SYSTEM_NAME}' not supported by this release of WebGPU. You may consider building it yourself from its source (see https://github.com/gfx-rs/wgpu-native)")
@@ -71,6 +75,9 @@ endif()
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND WEBGPU_UNIVERSAL_MAC_LIB)
 	set(DOWNLOAD_ARCHS "x86_64" "aarch64")
 	message(STATUS "Universal macOS build requested - will download both x86_64 and aarch64 binaries")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "iOS" AND WEBGPU_IOS_SIMULATOR)
+	set(DOWNLOAD_ARCHS "x86_64" "aarch64")
+	message(STATUS "Universal iOS simulator build requested - will download both x86_64 and aarch64 binaries")
 else()
 	set(DOWNLOAD_ARCHS "${ARCH}")
 endif()
@@ -100,6 +107,8 @@ foreach(CURRENT_ARCH IN LISTS DOWNLOAD_ARCHS)
 	# identifier (BTW it must be lowercase).
 	if (URL_COMPILER)
 		set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_COMPILER}-${URL_CONFIG}")
+	elseif (CMAKE_SYSTEM_NAME STREQUAL "iOS" AND WEBGPU_IOS_SIMULATOR)
+		set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-simulator-${URL_CONFIG}")
 	else()
 		set(URL_NAME "wgpu-${URL_OS}-${URL_ARCH}-${URL_CONFIG}")
 	endif()
@@ -128,7 +137,8 @@ foreach(CURRENT_ARCH IN LISTS DOWNLOAD_ARCHS)
 endforeach()
 
 # Create universal binary if needed
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND WEBGPU_UNIVERSAL_MAC_LIB)
+if ((CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND WEBGPU_UNIVERSAL_MAC_LIB) OR
+	(CMAKE_SYSTEM_NAME STREQUAL "iOS" AND WEBGPU_IOS_SIMULATOR))
 	# Create universal library directory
 	set(UNIVERSAL_LIB_DIR "${CMAKE_BINARY_DIR}/webgpu_universal/lib")
 	file(MAKE_DIRECTORY "${UNIVERSAL_LIB_DIR}")
@@ -265,7 +275,7 @@ else (USE_SHARED_LIB)
 				m
 		)
 
-	elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+	elseif ((CMAKE_SYSTEM_NAME STREQUAL "Darwin") OR (CMAKE_SYSTEM_NAME STREQUAL "iOS"))
 
 		target_link_libraries(
 			webgpu
