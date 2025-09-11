@@ -46,6 +46,9 @@ set(WEBGPU_LINK_TYPE "SHARED" CACHE STRING "\
 	are valid.")
 set_property(CACHE WEBGPU_LINK_TYPE PROPERTY STRINGS SHARED STATIC)
 
+option(WEBGPU_UNIVERSAL_MAC_LIB "\
+	(macOS only) Make a 'fat' wgpu-native with x86_64 and arm64" OFF)
+
 # NB: There are also backend-specific options in <backend>/CMakeLists.txt
 
 if (TARGET webgpu)
